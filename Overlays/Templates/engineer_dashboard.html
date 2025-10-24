@@ -1,0 +1,707 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>X-26 iSpotter</title>
+    <link rel="stylesheet" href="/Styling/styles.css">
+    <script src="https://cdn.socket.io/4.5.4/socket.io.min.js"></script>
+</head>
+<body>
+    <div class="dashboard">
+        <!-- Header -->
+        <div class="header">
+            <span>POS: <span id="position">--</span></span>
+            <span style="margin: 0 40px;">LAP: <span id="lap">--</span></span>
+            <span>TIME: <span id="current-lap-time">99:99.999</span></span>
+            <span style="margin: 0 40px;">STINT LAP: <span id="stint-lap">--</span></span>
+        </div>
+
+        <!-- Left Panel -->
+        <div class="left-panel">
+            <div class="tire-section">
+                <h2>Car Info</h2>
+                <div class="tire-layout-container">
+                    <!-- Left Column - Left Tires -->
+                    <div class="tire-column">
+                        <!-- Front Left Tire Assembly -->
+                        <div class="tire-stack">
+                            <div class="tire-assembly">
+                                <div class="tire-segment" id="tire-lf-outer"></div>
+                                <div class="tire-segment" id="tire-lf-middle"></div>
+                                <div class="tire-segment" id="tire-lf-inner"></div>
+                            </div>
+                            <div class="tire-temps-row">
+                                <div class="temp-display" id="lf-temp-outer">--</div>
+                                <div class="temp-display" id="lf-temp-middle">--</div>
+                                <div class="temp-display" id="lf-temp-inner">--</div>
+                            </div>
+                        </div>
+
+                        <!-- Rear Left Tire Assembly -->
+                        <div class="tire-stack">
+                            <div class="tire-assembly">
+                                <div class="tire-segment" id="tire-lr-outer"></div>
+                                <div class="tire-segment" id="tire-lr-middle"></div>
+                                <div class="tire-segment" id="tire-lr-inner"></div>
+                            </div>
+                            <div class="tire-temps-row">
+                                <div class="temp-display" id="lr-temp-outer">--</div>
+                                <div class="temp-display" id="lr-temp-middle">--</div>
+                                <div class="temp-display" id="lr-temp-inner">--</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Center Column - Car Info -->
+                    <div class="center-column">
+                        <div class="drivetrain-info-vertical">
+                            <div>Gear: <span id="gear">-</span></div>
+                            <div><span id="rpm">----</span> RPM</div>
+                            <div id="speed">--- MPH</div>
+                            <div>Fuel: <span id="fuel">-- L</span></div>
+                        </div>
+                    </div>
+
+                    <!-- Right Column - Right Tires -->
+                    <div class="tire-column">
+                        <!-- Front Right Tire Assembly -->
+                        <div class="tire-stack">
+                            <div class="tire-assembly right">
+                                <div class="tire-segment" id="tire-rf-outer"></div>
+                                <div class="tire-segment" id="tire-rf-middle"></div>
+                                <div class="tire-segment" id="tire-rf-inner"></div>
+                            </div>
+                            <div class="tire-temps-row">
+                                <div class="temp-display" id="rf-temp-inner">--</div>
+                                <div class="temp-display" id="rf-temp-middle">--</div>
+                                <div class="temp-display" id="rf-temp-outer">--</div>
+                            </div>
+                        </div>
+
+                        <!-- Rear Right Tire Assembly -->
+                        <div class="tire-stack">
+                            <div class="tire-assembly right">
+                                <div class="tire-segment" id="tire-rr-outer"></div>
+                                <div class="tire-segment" id="tire-rr-middle"></div>
+                                <div class="tire-segment" id="tire-rr-inner"></div>
+                            </div>
+                            <div class="tire-temps-row">
+                                <div class="temp-display" id="rr-temp-inner">--</div>
+                                <div class="temp-display" id="rr-temp-middle">--</div>
+                                <div class="temp-display" id="rr-temp-outer">--</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <h2>Tire Tread Remaining</h2>
+                <div class="tire-pressure-grid">
+                    <div class="pressure-corner lf" id="lf-pressure">--</div>
+                    <div class="pressure-corner rf" id="rf-pressure">--</div>
+                    <div class="pressure-corner lr" id="lr-pressure">--</div>
+                    <div class="pressure-corner rr" id="rr-pressure">--</div>
+                </div>
+            </div>
+
+            <div class="pit-wizard">
+                <h3>Lap Time Wizard</h3>
+                <div class="pit-info">
+                    <div class="pit-info-row">
+                        <span>Average Pace:</span>
+                        <span id="avg-pace">--:--</span>
+                    </div>
+                    <div class="pit-info-row">
+                        <span>Predicted Next Lap:</span>
+                        <span id="predicted-lap">--:--</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="pit-wizard">
+                <h3>Pit Stop Wizard</h3>
+                <div class="pit-info">
+                    <div class="pit-info-row">
+                        <span>Predicted Pit Stops Remaining:</span>
+                        <span id="predicted-stops">--</span>
+                    </div>
+                    <div class="pit-info-row">
+                        <span>Predicted laps left till next stop:</span>
+                        <span id="laps-fuel">--</span>
+                    </div>
+                    <div class="pit-info-row">
+                        <div>Predicted time left till next stop: <span id="time-fuel">--</span></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Center Panel -->
+        <div class="center-panel">
+            <!-- Telemetry Display Module -->
+            <div class="telemetry-module">
+                <!-- Line Chart -->
+                <div class="line-chart-container">
+                    <canvas id="lineChart"></canvas>
+                </div>
+
+                <!-- Input Bars -->
+                <div class="input-bars-container">
+                    <div class="input-bar clutch-bar">
+                        <div class="input-bar-fill" id="clutch-fill"></div>
+                    </div>
+                    <div class="input-bar brake-bar">
+                        <div class="input-bar-fill" id="brake-fill"></div>
+                    </div>
+                    <div class="input-bar throttle-bar">
+                        <div class="input-bar-fill" id="throttle-fill"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Sectors Table -->
+            <div class="sectors-module">
+                <h3>Sector Times</h3>
+                <table class="sectors-table">
+                    <thead>
+                        <tr>
+                            <th>S1</th>
+                            <th>S2</th>
+                            <th>S3</th>
+                            <th>S4</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td id="sector-1">--:--</td>
+                            <td id="sector-2">--:--</td>
+                            <td id="sector-3">--:--</td>
+                            <td id="sector-4">--:--</td>
+                        </tr>
+                    </tbody>
+                </table>
+                <div>
+                <h3>Corner Speeds</h3>
+                <table class="sectors-table">
+                    <thead>
+                        <tr>
+                            <th>Corner</th>
+                            <th>Entry</th>
+                            <th>Apex</th>
+                            <th>Exit</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td id="Corner">--</td>
+                            <td id="entry">--<span> MPH</span></td>
+                            <td id="apex">--<span> MPH</span></td>
+                            <td id="exit">--<span> MPH</span></td>
+                        </tr>
+                    </tbody>
+                </table>
+                </div>
+            </div>
+        </div>
+        <!-- Right Panel -->
+        <div class="right-panel">
+            <div class="section">
+                <h3>Relative Timing</h3>
+                <table class="timing-table" id="relative-timing">
+                    <thead>
+                        <tr>
+                            <th>Position</th>
+                            <th>Gap</th>
+                            <th>Last Lap Delta</th>
+                        </tr>
+                    </thead>
+                    <tbody id="timing-body">
+                        <tr>
+                            <td id="timing-lead-pos">1</td>
+                            <td id="timing-lead-gap">--</td>
+                            <td id="timing-lead-delta">--</td>
+                        </tr>
+                        <tr>
+                            <td id="timing-ahead-pos">--</td>
+                            <td id="timing-ahead-gap">--</td>
+                            <td id="timing-ahead-delta">--</td>
+                        </tr>
+                        <tr>
+                            <td colspan='3'>-------------------YOU-------------------</td>
+                        </tr>
+                        <tr>
+                            <td id="timing-behind-pos">--</td>
+                            <td id="timing-behind-gap">--</td>
+                            <td id="timing-behind-delta">--</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="section">
+                <h3>Best Lap</h3>
+                <table class="timing-table" id="best-ses-lap">
+                    <thead>
+                        <tr>
+                            <th>Lap</th>
+                            <th>Time</th>
+                            <th>Live Delta</th>
+                        </tr>
+                    </thead>
+                    <tbody id="bestlap-body">
+                        <tr>
+                            <td id="best-lap">--</td>
+                            <td id="best-time">--:--</td>
+                            <td id="delta-to-best">--</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="section">
+                <h3>Spotter Tools</h3>
+                <button class="action-button start-btn" id="start-stream-btn">Start Stream</button>
+                <button class="action-button stop-btn" id="stop-stream-btn">Stop Stream</button>
+                <div id="stream-status" class="stream-status">
+                    <div>Stream: <span id="status-text">Inactive</span></div>
+                    <div>iRacing: <span id="iracing-status">Disabled</span></div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+    <script>
+        // Connect to Socket.IO server
+        const socket = io('http://localhost:5000');
+
+        // Line Chart Setup
+        const canvas = document.getElementById('lineChart');
+        const ctx = canvas.getContext('2d');
+
+        // Set canvas size
+        function resizeCanvas() {
+            canvas.width = canvas.offsetWidth;
+            canvas.height = canvas.offsetHeight;
+        }
+        resizeCanvas();
+        window.addEventListener('resize', resizeCanvas);
+
+        // Data storage for line chart (input history)
+        const maxDataPoints = 100;
+        const throttleHistory = [];
+        const brakeHistory = [];
+        const clutchHistory = [];
+
+        function drawLineChart() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+    
+            if (throttleHistory.length < 2) return;
+
+            const width = canvas.width;
+            const height = canvas.height;
+            const padding = 5;
+
+            // Draw throttle line (green)
+            ctx.strokeStyle = '#00ff00';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+    
+            for (let i = 0; i < throttleHistory.length; i++) {
+                const x = padding + (i / maxDataPoints) * (width - padding * 2);
+                const y = height - padding - (throttleHistory[i]) * (height - padding * 2);
+        
+                if (i === 0) {
+                    ctx.moveTo(x, y);
+                } else {
+                    ctx.lineTo(x, y);
+                }
+            }
+            ctx.stroke();
+
+            // Draw brake line (red)
+            ctx.strokeStyle = '#ff3333';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+    
+            for (let i = 0; i < brakeHistory.length; i++) {
+                const x = padding + (i / maxDataPoints) * (width - padding * 2);
+                const y = height - padding - (brakeHistory[i]) * (height - padding * 2);
+        
+                if (i === 0) {
+                    ctx.moveTo(x, y);
+                } else {
+                    ctx.lineTo(x, y);
+                }
+            }
+            ctx.stroke();
+
+            // Draw clutch line (blue)
+            ctx.strokeStyle = '#0099ff';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+    
+            for (let i = 0; i < clutchHistory.length; i++) {
+                const x = padding + (i / maxDataPoints) * (width - padding * 2);
+                const y = height - padding - (clutchHistory[i]) * (height - padding * 2);
+        
+            if (i === 0) {
+                    ctx.moveTo(x, y);
+                } else {
+                    ctx.lineTo(x, y);
+                }
+            }
+            ctx.stroke();
+        }
+
+        // Update line chart with throttle, brake, clutch data
+        function updateLineChart(throttle, brake, clutch) {
+            throttleHistory.push(throttle);
+            brakeHistory.push(brake);
+            clutchHistory.push(clutch);
+    
+            if (throttleHistory.length > maxDataPoints) {
+                throttleHistory.shift();
+                brakeHistory.shift();
+                clutchHistory.shift();
+            }
+    
+            drawLineChart();
+        }
+
+        // Update input bars
+        function updateInputBars(throttle, brake, clutch) {
+            document.getElementById('throttle-fill').style.height = (throttle * 100) + '%';
+            document.getElementById('brake-fill').style.height = (brake * 100) + '%';
+            document.getElementById('clutch-fill').style.height = (clutch * 100) + '%';
+        }
+
+        // Format time as MM:SS.SSS
+        function formatTime(seconds) {
+            if (!seconds || seconds <= 0) return '--:--';
+            const mins = Math.floor(seconds / 60);
+            const secs = (seconds % 60).toFixed(3);
+            return `${mins}:${secs.padStart(6, '0')}`;
+        }
+
+        // Handle incoming telemetry data
+        socket.on('frame_update', (data) => {
+            console.log('Received frame:', data);
+
+            // Update iRacing connection status if available
+            if (data.connection !== undefined) {
+                updateIRacingStatus(data.connection);
+            }
+
+            // Update header info
+            if (data.relative_timing && data.relative_timing.car_idx_position) {
+                const position = data.relative_timing.car_idx_position || '--';
+                const suffix = position === 1 ? 'st' : position === 2 ? 'nd' : position === 3 ? 'rd' : 'th';
+                document.getElementById('position').textContent = position + suffix;
+            }
+
+            if (data.lap_times) {
+                document.getElementById('lap').textContent = data.lap_times.lap || '--';
+                document.getElementById('current-lap-time').textContent = formatTime(data.lap_times.lap_current_lap_time);
+                const blap = data.lap_times.lap_best_lap_time;
+                const delta = data.lap_times.live_delta || 0.0;
+                if (blap && delta){
+                    document.getElementById('predicted-lap').textContent = formatTime(blap + delta);
+                }
+                const blb = document.getElementById('bestlap-body');
+                if (blb) { 
+                    document.getElementById('best-lap').textContent = data.lap_times.lap_best_lap ?? 0;
+                    document.getElementById('best-time').textContent = formatTime(data.lap_times.lap_best_lap_time ?? 9999.99);
+                    document.getElementById('delta-to-best').textContent = data.lap_times.live_delta ?? 0;
+                }
+
+                const sector = data.lap_times.current_sector || 1;
+                document.getElementById(`sector-${sector}`).textContent = formatTime(data.lap_times.sector_time);
+
+                if (delta) {
+                    if (delta <= 0) {
+                        document.getElementById(`sector-${sector}`).style.backgroundColor = '#00ff00';
+                    } else {
+                        document.getElementById(`sector-${sector}`).style.backgroundColor = '#ff0000';
+                    }
+
+                    }
+                }
+
+            if (data.stint_lap){
+                document.getElementById('stint-lap').textContent = data.stint_lap;
+            }
+
+            // Update tire temps and colors - USE BACKEND COLORS
+            if (data.tire_temps) {
+                // Left Front
+                const lfTemps = data.tire_temps.lf_temps || [];
+                const lfColors = data.tire_temps.lf_temps_colors || [];
+                
+                document.getElementById('lf-temp-outer').textContent = Math.round(lfTemps[0] || 0);
+                document.getElementById('lf-temp-middle').textContent = Math.round(lfTemps[1] || 0);
+                document.getElementById('lf-temp-inner').textContent = Math.round(lfTemps[2] || 0);
+
+                document.getElementById('tire-lf-outer').style.background = lfColors[0] || '#000000';
+                document.getElementById('tire-lf-middle').style.background = lfColors[1] || '#000000';
+                document.getElementById('tire-lf-inner').style.background = lfColors[2] || '#000000';
+
+                // Right Front
+                const rfTemps = data.tire_temps.rf_temps || [];
+                const rfColors = data.tire_temps.rf_temps_colors || [];
+                
+                document.getElementById('rf-temp-outer').textContent = Math.round(rfTemps[2] || 0);
+                document.getElementById('rf-temp-middle').textContent = Math.round(rfTemps[1] || 0);
+                document.getElementById('rf-temp-inner').textContent = Math.round(rfTemps[0] || 0);
+                
+                document.getElementById('tire-rf-outer').style.background = rfColors[2] || '#000000';
+                document.getElementById('tire-rf-middle').style.background = rfColors[1] || '#000000';
+                document.getElementById('tire-rf-inner').style.background = rfColors[0] || '#000000';
+
+                // Left Rear
+                const lrTemps = data.tire_temps.lr_temps || [];
+                const lrColors = data.tire_temps.lr_temps_colors || [];
+                
+                document.getElementById('lr-temp-outer').textContent = Math.round(lrTemps[0] || 0);
+                document.getElementById('lr-temp-middle').textContent = Math.round(lrTemps[1] || 0);
+                document.getElementById('lr-temp-inner').textContent = Math.round(lrTemps[2] || 0);
+                
+                document.getElementById('tire-lr-outer').style.background = lrColors[0] || '#000000';
+                document.getElementById('tire-lr-middle').style.background = lrColors[1] || '#000000';
+                document.getElementById('tire-lr-inner').style.background = lrColors[2] || '#000000';
+
+                // Right Rear
+                const rrTemps = data.tire_temps.rr_temps || [];
+                const rrColors = data.tire_temps.rr_temps_colors || [];
+                
+                document.getElementById('rr-temp-outer').textContent = Math.round(rrTemps[2] || 0);
+                document.getElementById('rr-temp-middle').textContent = Math.round(rrTemps[1] || 0);
+                document.getElementById('rr-temp-inner').textContent = Math.round(rrTemps[0] || 0);
+                
+                document.getElementById('tire-rr-outer').style.background = rrColors[2] || '#000000';
+                document.getElementById('tire-rr-middle').style.background = rrColors[1] || '#000000';
+                document.getElementById('tire-rr-inner').style.background = rrColors[0] || '#000000';
+            }
+
+            if (data.consumables) {
+                // Add fuel remaining (fixed typo)
+                document.getElementById('fuel').textContent = Math.round(data.consumables.fuel_level ?? 0) + ' L';
+
+                // Wear values (added null checks)
+                const lfWear = data.consumables.lf_wear || [0, 0, 0];
+                const rfWear = data.consumables.rf_wear || [0, 0, 0];
+                const lrWear = data.consumables.lr_wear || [0, 0, 0];
+                const rrWear = data.consumables.rr_wear || [0, 0, 0];
+
+                // Calculate average wear for pressure display
+                const lfAvgWear = Math.round((((lfWear[0] || 0) + (lfWear[1] || 0) + (lfWear[2] || 0)) / 3) * 100);
+                const rfAvgWear = Math.round((((rfWear[0] || 0) + (rfWear[1] || 0) + (rfWear[2] || 0)) / 3) * 100);
+                const lrAvgWear = Math.round((((lrWear[0] || 0) + (lrWear[1] || 0) + (lrWear[2] || 0)) / 3) * 100);
+                const rrAvgWear = Math.round((((rrWear[0] || 0) + (rrWear[1] || 0) + (rrWear[2] || 0)) / 3) * 100);
+
+                // Update pressure displays
+                document.getElementById('lf-pressure').textContent = lfAvgWear;
+                document.getElementById('rf-pressure').textContent = rfAvgWear;
+                document.getElementById('lr-pressure').textContent = lrAvgWear;
+                document.getElementById('rr-pressure').textContent = rrAvgWear;
+            }
+
+            // Update footer info bar
+            if (data.drivetrain) {
+                document.getElementById('gear').textContent = data.drivetrain.gear || '-';
+                document.getElementById('rpm').textContent = Math.round(data.drivetrain.rpm) || '----';
+            }
+
+            if (data.basic_forces) {
+                const speed = Math.round(data.basic_forces.velo * 0.621371); // Convert km/h to mph
+                document.getElementById('speed').textContent = `${speed} MPH`;
+                const throttle = data.basic_forces.throttle || 0;
+                const brake = data.basic_forces.brake || 0;
+                const clutch = data.basic_forces.clutch || 0;
+    
+                // Update the vertical bars
+                updateInputBars(throttle, brake, clutch);
+    
+                // Update the line chart (showing input history)
+                updateLineChart(throttle, brake, clutch);
+            }
+
+            if (data.predictives) {
+                document.getElementById("laps-fuel").textContent = data.predictives.Fuel_Laps_Remaining || '--';
+                document.getElementById("time-fuel").textContent = formatTime(data.predictives.Fuel_Time_Remaining) || '--';
+                document.getElementById("predicted-stops").textContent = data.predictives.Predicted_Stops_Remaining || '--';
+                document.getElementById("avg-pace").textContent = formatTime(data.predictives.Average_Pace) || '--:--';
+            }
+
+            if (data.relative_timing) {
+                const tb = document.getElementById("timing-body");
+                if (tb) {
+                    // Update existing cells
+                    const me_idx = data.relative_timing.car_idx_position;
+                    
+                    // Leader
+                    document.getElementById('timing-lead-pos').textContent = '1';
+                    document.getElementById('timing-lead-gap').textContent = data.relative_timing.leader_time_ahead ?? '--';
+                    document.getElementById('timing-lead-delta').textContent = data.relative_timing.leader_delta ?? '--';
+
+                    if (data.relative_timing.leader_delta && data.relative_timing.leader_delta > 0) {
+                        document.getElementById("timing-lead-delta").style.color = '#ff0000';
+                    }
+
+                    if (data.relative_timing.leader_delta && data.relative_timing.leader_delta <= 0) {
+                        document.getElementById("timing-lead-delta").style.color = '#00ff00';
+                    }
+                    
+                    // Car ahead
+                    if (me_idx > 1) {
+                        document.getElementById('timing-ahead-pos').textContent = me_idx - 1;
+                        document.getElementById('timing-ahead-gap').textContent = data.relative_timing.car_time_ahead ?? '--';
+                        document.getElementById('timing-ahead-delta').textContent = data.relative_timing.car_ahead_delta ?? '--';
+
+                        if (data.relative_timing.car_ahead_delta && data.relative_timing.car_ahead_delta > 0) {
+                        document.getElementById('timing-ahead-delta').style.color = '#ff0000';
+                        }
+
+                        if (data.relative_timing.car_ahead_delta && data.relative_timing.car_ahead_delta <= 0) {
+                            document.getElementById('timing-ahead-delta').style.color = '#00ff00';
+                        }
+
+                    } else {
+                        document.getElementById('timing-ahead-pos').textContent = '--';
+                        document.getElementById('timing-ahead-gap').textContent = '--';
+                        document.getElementById('timing-ahead-delta').textContent = '--';
+                        document.getElementById('timing-lead-gap').textContent = 'YOU';
+                    }
+                    
+                    // Car behind
+                    document.getElementById('timing-behind-pos').textContent = me_idx + 1;
+                    document.getElementById('timing-behind-gap').textContent = data.relative_timing.car_time_behind ?? '--';
+                    document.getElementById('timing-behind-delta').textContent = data.relative_timing.car_behind_delta ?? '--';
+
+                    if (data.relative_timing.car_behind_delta && data.relative_timing.car_behind_delta > 0) {
+                        document.getElementById('timing-behind-delta').style.color = '#ff0000';
+                    }
+
+                    if (data.relative_timing.car_ahead_delta && data.relative_timing.car_ahead_delta <= 0) {
+                        document.getElementById('timing-behind-delta').style.color = '#00ff00';
+                    }
+                }
+            }
+        });
+
+        // Stream control functions
+        let streamActive = false;
+
+        // Start stream button handler
+        document.getElementById('start-stream-btn').addEventListener('click', async () => {
+            try {
+                const response = await fetch('/api/stream/start', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                const data = await response.json();
+                console.log('Start stream response:', data);
+                
+                if (data.status === 'success' || data.status === 'already_running') {
+                    updateStreamStatus(true);
+                }
+            } catch (error) {
+                console.error('Error starting stream:', error);
+                alert('Failed to start stream: ' + error.message);
+            }
+        });
+
+        // Stop stream button handler
+        document.getElementById('stop-stream-btn').addEventListener('click', async () => {
+            try {
+                const response = await fetch('/api/stream/stop', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                const data = await response.json();
+                console.log('Stop stream response:', data);
+                
+                if (data.status === 'success' || data.status === 'not_running') {
+                    updateStreamStatus(false);
+                }
+            } catch (error) {
+                console.error('Error stopping stream:', error);
+                alert('Failed to stop stream: ' + error.message);
+            }
+        });
+
+        // Update UI based on stream status
+        function updateStreamStatus(isActive) {
+            streamActive = isActive;
+            const statusText = document.getElementById('status-text');
+            const startBtn = document.getElementById('start-stream-btn');
+            const stopBtn = document.getElementById('stop-stream-btn');
+            
+            if (isActive) {
+                statusText.textContent = 'Active';
+                statusText.style.color = '#00ff00';
+                startBtn.disabled = true;
+                startBtn.style.opacity = '0.5';
+                stopBtn.disabled = false;
+                stopBtn.style.opacity = '1';
+            } else {
+                statusText.textContent = 'Inactive';
+                statusText.style.color = '#ff0000';
+                startBtn.disabled = false;
+                startBtn.style.opacity = '1';
+                stopBtn.disabled = true;
+                stopBtn.style.opacity = '0.5';
+            }
+        }
+
+        // Update iRacing connection status
+        function updateIRacingStatus(isConnected) {
+            const iracingStatus = document.getElementById('iracing-status');
+            if (isConnected) {
+                iracingStatus.textContent = 'Connected';
+                iracingStatus.style.color = '#00ff00';
+            } else {
+                iracingStatus.textContent = 'Disconnected';
+                iracingStatus.style.color = '#ff0000';
+            }
+        }
+
+        // Listen for stream status updates from server
+        socket.on('stream_status', (data) => {
+            console.log('Stream status update:', data);
+            updateStreamStatus(data.status === 'started');
+        });
+
+        // Check initial stream status
+        async function checkStreamStatus() {
+            try {
+                const response = await fetch('/api/stream/status');
+                const data = await response.json();
+                updateStreamStatus(data.is_running);
+                if (data.iracing_connected !== undefined) {
+                    updateIRacingStatus(data.iracing_connected);
+                }
+            } catch (error) {
+                console.error('Error checking stream status:', error);
+            }
+        }
+
+        // Check status on page load
+        checkStreamStatus();
+
+        // Connection status
+        socket.on('connect', () => {
+            console.log('Connected to telemetry server');
+        });
+
+        socket.on('disconnect', () => {
+            console.log('Disconnected from telemetry server');
+        });
+    </script>
+</body>
+</html>
