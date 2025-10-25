@@ -123,10 +123,10 @@ class stream_handlers:
             'clutch': 1 - float(stream['ClutchRaw'] or 0.0),
             'throttle': float(stream['ThrottleRaw'] or 0.0)
         }
-        
+    """
     @staticmethod
     def parse_positionals(stream):
-        """Parse positional data if it exists"""
+        "Parse positional data if it exists"
         return {
             'lat_acc': float(stream['GPSLatAcc'] or 0.0),
             'lon_acc': float(stream['GPSLonAcc'] or 0.0),
@@ -137,6 +137,7 @@ class stream_handlers:
             'RLSpeed': float(stream['RLSpeed'] or 0.0),
             'RRSpeed': float(stream['RRSpeed'] or 0.0)
         }
+    """
     
     @staticmethod
     def parse_steering(stream):
@@ -152,25 +153,60 @@ class stream_handlers:
     def parse_relative_timing(stream):
         """Parse relative timing and distance data"""
         me_idx = int(stream['PlayerCarIdx'] or 1)
+        me_class = int(stream['CarIdxClass'][me_idx] or 0)
+        me_pos = int(stream['CarIdxClassPosition'][me_idx] or 1)
+        
+        i = me_idx
+        ahead_idx = max(me_idx - 1, 1)
+        behind_idx = me_idx + 1
+        
+        while ahead_idx > 0:
+            if me_class != stream['CarIdxClass'][ahead_idx]:
+                ahead_idx -= 1
+                continue
+            
+            elif me_class == stream['CarIdxClass'][ahead_idx] and me_pos > int(stream['CarIdxClassPosition'][ahead_idx] or 1):
+                break
+            
+            else:
+                ahead_idx -= 1
+                continue
+        try:
+            while stream['CarIdxClass'][behind_idx] is not None:
+                if me_class != stream['CarIdxClass'][behind_idx]:
+                    behind_idx += 1
+                    continue
+            
+                elif me_class == stream['CarIdxClass'][behind_idx] and me_pos < int(stream['CarIdxClassPosition'][behind_idx] or 1):
+                    break
+            
+                else:
+                    behind_idx += 1
+                    continue
+                
+        except:
+            behind_idx -= 1
+            
         return {
             'leader_time_ahead': round(float(stream['CarIdxF2Time'][me_idx] or 0.0), 3),
             'leader_delta': round(
                 float(stream['CarIdxLastLapTime'][me_idx] or 0.0)
                 - float(stream['CarIdxLastLapTime'][1] or 0.0), 3),
             'car_time_ahead': round(
-                abs(float(stream['CarIdxF2Time'][max(me_idx - 1, 1)] or 0.0)
+                abs(float(stream['CarIdxF2Time'][ahead_idx] or 0.0)
                 - float(stream['CarIdxF2Time'][me_idx] or 0.0)), 3),
             'car_ahead_delta': round(
-                float(stream['CarIdxLastLapTime'][max(me_idx - 1, 1)] or 0.0)
+                float(stream['CarIdxLastLapTime'][ahead_idx] or 0.0)
                 - float(stream['CarIdxLastLapTime'][me_idx] or 0.0), 3),
             'car_time_behind': round(
-                abs(float(stream['CarIdxF2Time'][me_idx + 1] or 0.0)
+                abs(float(stream['CarIdxF2Time'][behind_idx] or 0.0)
                 - float(stream['CarIdxF2Time'][me_idx] or 0.0)), 3),
             'car_behind_delta': round(
-                float(stream['CarIdxLastLapTime'][me_idx + 1] or 0.0)
+                float(stream['CarIdxLastLapTime'][behind_idx] or 0.0)
                 - float(stream['CarIdxLastLapTime'][me_idx] or 0.0), 3),
             'car_idx_lapdist_pct': float(stream['CarIdxLapDistPct'][me_idx] or 0.0),
-            'car_idx_position': me_idx,
+            'car_idx_position': me_pos,
+            'car_idx_class': me_class,
             'car_left_right': int(stream['CarLeftRight'] or 0)
             }
 
@@ -261,7 +297,7 @@ class stream_handlers:
             'drivetrain': stream_handlers.parse_drivetrain(stream),
             'tire_temps': stream_handlers.parse_tire_temps(stream),
             'pit_status': stream['OnPitRoad'],
-            'positionals': stream_handlers.parse_positionals(stream),
+            #'positionals': stream_handlers.parse_positionals(stream),
             'laps': None,
             'predictives': None,
             'stint_lap': None
