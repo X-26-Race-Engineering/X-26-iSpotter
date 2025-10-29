@@ -217,22 +217,24 @@
                     </thead>
                     <tbody id="timing-body">
                         <tr>
-                            <td id="timing-lead-pos">1</td>
-                            <td id="timing-lead-gap">--</td>
-                            <td id="timing-lead-delta">--</td>
+                            <td id="timing-1-pos">1</td>
+                            <td id="timing-1-gap">--</td>
+                            <td id="timing-1-delta">--</td>
                         </tr>
                         <tr>
-                            <td id="timing-ahead-pos">--</td>
-                            <td id="timing-ahead-gap">--</td>
-                            <td id="timing-ahead-delta">--</td>
+                            <td id="timing-2-pos">--</td>
+                            <td id="timing-2-gap">--</td>
+                            <td id="timing-2-delta">--</td>
                         </tr>
                         <tr>
-                            <td colspan='3'>-------------------YOU-------------------</td>
+                            <td id="timing-3-pos">--</td>
+                            <td id="timing-3-gap">--</td>
+                            <td id="timing-3-delta">--</td>
                         </tr>
                         <tr>
-                            <td id="timing-behind-pos">--</td>
-                            <td id="timing-behind-gap">--</td>
-                            <td id="timing-behind-delta">--</td>
+                            <td id="timing-4-pos">--</td>
+                            <td id="timing-4-gap">--</td>
+                            <td id="timing-4-delta">--</td>
                         </tr>
                     </tbody>
                 </table>
@@ -533,56 +535,45 @@
             }
 
             if (data.relative_timing) {
-                const tb = document.getElementById("timing-body");
-                if (tb) {
-                    // Update existing cells
-                    const me_idx = data.relative_timing.car_idx_position;
-                    
-                    // Leader
-                    document.getElementById('timing-lead-pos').textContent = '1';
-                    document.getElementById('timing-lead-gap').textContent = data.relative_timing.leader_time_ahead ?? '--';
-                    document.getElementById('timing-lead-delta').textContent = data.relative_timing.leader_delta ?? '--';
-
-                    if (data.relative_timing.leader_delta && data.relative_timing.leader_delta > 0) {
-                        document.getElementById("timing-lead-delta").style.color = '#ff0000';
-                    }
-
-                    if (data.relative_timing.leader_delta && data.relative_timing.leader_delta <= 0) {
-                        document.getElementById("timing-lead-delta").style.color = '#00ff00';
-                    }
-                    
-                    // Car ahead
-                    if (me_idx > 1) {
-                        document.getElementById('timing-ahead-pos').textContent = me_idx - 1;
-                        document.getElementById('timing-ahead-gap').textContent = data.relative_timing.car_time_ahead ?? '--';
-                        document.getElementById('timing-ahead-delta').textContent = data.relative_timing.car_ahead_delta ?? '--';
-
-                        if (data.relative_timing.car_ahead_delta && data.relative_timing.car_ahead_delta > 0) {
-                        document.getElementById('timing-ahead-delta').style.color = '#ff0000';
-                        }
-
-                        if (data.relative_timing.car_ahead_delta && data.relative_timing.car_ahead_delta <= 0) {
-                            document.getElementById('timing-ahead-delta').style.color = '#00ff00';
-                        }
-
-                    } else {
-                        document.getElementById('timing-ahead-pos').textContent = '--';
-                        document.getElementById('timing-ahead-gap').textContent = '--';
-                        document.getElementById('timing-ahead-delta').textContent = '--';
-                        document.getElementById('timing-lead-gap').textContent = 'YOU';
-                    }
-                    
-                    // Car behind
-                    document.getElementById('timing-behind-pos').textContent = me_idx + 1;
-                    document.getElementById('timing-behind-gap').textContent = data.relative_timing.car_time_behind ?? '--';
-                    document.getElementById('timing-behind-delta').textContent = data.relative_timing.car_behind_delta ?? '--';
-
-                    if (data.relative_timing.car_behind_delta && data.relative_timing.car_behind_delta > 0) {
-                        document.getElementById('timing-behind-delta').style.color = '#ff0000';
-                    }
-
-                    if (data.relative_timing.car_ahead_delta && data.relative_timing.car_ahead_delta <= 0) {
-                        document.getElementById('timing-behind-delta').style.color = '#00ff00';
+                const me_pos = data.relative_timing.car_idx_position;
+                const gaps = data.relative_timing.gaps || [];
+                const deltas = data.relative_timing.deltas || [];
+                const classLength = deltas.length;
+    
+                // Define which positions to show in each row based on player position
+                let displayPositions;
+    
+                if (me_pos === 1) {
+                    // Leader: show positions 1, 2, 3, 4
+                    displayPositions = [1, 2, 3, 4];
+                } else if (me_pos === 2) {
+                    // 2nd place: show positions 1, 2, 3, 4
+                    displayPositions = [1, 2, 3, 4];
+                } else if (me_pos === classLength) {
+                    // Last place: show leader, P-2, P-1, P (you)
+                    displayPositions = [1, me_pos - 2, me_pos - 1, me_pos];
+                } else {
+                    // Middle of pack: show leader, P-1, P (you), P+1
+                    displayPositions = [1, me_pos - 1, me_pos, me_pos + 1];
+                }
+    
+                // Update each row dynamically
+                for (let i = 0; i < 4; i++) {
+                    const rowNum = i + 1;
+                    const position = displayPositions[i];
+                    const gapIndex = position - 1;
+        
+                    const posCell = document.getElementById(`timing-${rowNum}-pos`);
+                    const gapCell = document.getElementById(`timing-${rowNum}-gap`);
+                    const deltaCell = document.getElementById(`timing-${rowNum}-delta`);
+        
+                    if (posCell && gapCell && deltaCell) {
+                        // Display position (or "You" if it's the player)
+                        posCell.textContent = position === me_pos ? 'You' : position;
+            
+                        // Display gap and delta
+                        gapCell.textContent = gaps[gapIndex] ?? '--';
+                        deltaCell.textContent = deltas[gapIndex] ?? '--';
                     }
                 }
             }

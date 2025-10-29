@@ -12,49 +12,6 @@ import numpy as np
 import keyboard
 import math
 
-VARS = [
-    # --- Basic Forces
-    "LatAccel", "LongAccel", "Yaw", "Speed", "Brake", "Clutch", "Throttle",
-
-    # --- Throttle / Brake / Clutch
-    "ThrottleRaw", "BrakeRaw", "ClutchRaw",
-
-    # --- Steering
-    "SteeringWheelAngle", "SteeringWheelAngleMax", "CarIdxSteer",
-
-    # --- Timing
-    "CarIdxF2Time", "CarDistAhead", "CarDistBehind", 
-    "CarIdxLapDistPct", "LapCurrentLapTime",
-
-    # --- Lap Times
-    "LapBestLapTime", "LapLastLapTime", "LapCurrentLapTime", 
-    "LapBestLap", "CarIdxBestLapTime", "Lap",
-
-    # --- Radar
-    "CarIdxTrackSurface", "CarIdxPosition", "CarLeftRight", "CarIdxOnPitRoad",
-
-    # --- Fuel & Tires
-    "FuelLevel", "FuelLevelPct", "FuelUsePerHour",
-    "LFwearL", "LFwearM", "LFwearR",
-    "RFwearL", "RFwearM", "RFwearR",
-    "LRwearL", "LRwearM", "LRwearR",
-    "RRwearL", "RRwearM", "RRwearR",
-    "TireSetsUsed", "TireSetsAvailable",
-
-    # --- G-Meter
-    "LatAccel_ST", "LongAccel_ST", "VertAccel",
-
-    # --- RPM & Gear
-    "RPM", "Gear", "CarIdxRPM", "CarIdxGear", 
-    "ShiftIndicatorPct", "PlayerCarSLShiftRPM",
-
-    # --- Tire Temps
-    "LFtempCL", "LFtempCM", "LFtempCR",
-    "RFtempCL", "RFtempCM", "RFtempCR",
-    "LRtempCL", "LRtempCM", "LRtempCR",
-    "RRtempCL", "RRtempCM", "RRtempCR"
-]
-
 # Global state
 stored_telem = {
     'Tire Tread PCT': [],
@@ -77,6 +34,7 @@ ir_instance = None
 connect_status = False
 stop_requested = False
 last_sector = -1  # Track which sector we're in (0-3)
+last_stop_time = 0.0
 
 
 class State:
