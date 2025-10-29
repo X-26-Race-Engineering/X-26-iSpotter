@@ -19,101 +19,38 @@
 
         <!-- Left Panel -->
         <div class="left-panel">
-            <div class="tire-section">
-                <h2>Car Info</h2>
-                <div class="tire-layout-container">
-                    <!-- Left Column - Left Tires -->
-                    <div class="tire-column">
-                        <!-- Front Left Tire Assembly -->
-                        <div class="tire-stack">
-                            <div class="tire-assembly">
-                                <div class="tire-segment" id="tire-lf-outer"></div>
-                                <div class="tire-segment" id="tire-lf-middle"></div>
-                                <div class="tire-segment" id="tire-lf-inner"></div>
-                            </div>
-                            <div class="tire-temps-row">
-                                <div class="temp-display" id="lf-temp-outer">--</div>
-                                <div class="temp-display" id="lf-temp-middle">--</div>
-                                <div class="temp-display" id="lf-temp-inner">--</div>
-                            </div>
-                        </div>
 
-                        <!-- Rear Left Tire Assembly -->
-                        <div class="tire-stack">
-                            <div class="tire-assembly">
-                                <div class="tire-segment" id="tire-lr-outer"></div>
-                                <div class="tire-segment" id="tire-lr-middle"></div>
-                                <div class="tire-segment" id="tire-lr-inner"></div>
-                            </div>
-                            <div class="tire-temps-row">
-                                <div class="temp-display" id="lr-temp-outer">--</div>
-                                <div class="temp-display" id="lr-temp-middle">--</div>
-                                <div class="temp-display" id="lr-temp-inner">--</div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Center Column - Car Info -->
-                    <div class="center-column">
-                        <div class="drivetrain-info-vertical">
-                            <div>Gear: <span id="gear">-</span></div>
-                            <div><span id="rpm">----</span> RPM</div>
-                            <div id="speed">--- MPH</div>
-                            <div>Fuel: <span id="fuel">-- L</span></div>
-                        </div>
-                    </div>
-
-                    <!-- Right Column - Right Tires -->
-                    <div class="tire-column">
-                        <!-- Front Right Tire Assembly -->
-                        <div class="tire-stack">
-                            <div class="tire-assembly right">
-                                <div class="tire-segment" id="tire-rf-outer"></div>
-                                <div class="tire-segment" id="tire-rf-middle"></div>
-                                <div class="tire-segment" id="tire-rf-inner"></div>
-                            </div>
-                            <div class="tire-temps-row">
-                                <div class="temp-display" id="rf-temp-inner">--</div>
-                                <div class="temp-display" id="rf-temp-middle">--</div>
-                                <div class="temp-display" id="rf-temp-outer">--</div>
-                            </div>
-                        </div>
-
-                        <!-- Rear Right Tire Assembly -->
-                        <div class="tire-stack">
-                            <div class="tire-assembly right">
-                                <div class="tire-segment" id="tire-rr-outer"></div>
-                                <div class="tire-segment" id="tire-rr-middle"></div>
-                                <div class="tire-segment" id="tire-rr-inner"></div>
-                            </div>
-                            <div class="tire-temps-row">
-                                <div class="temp-display" id="rr-temp-inner">--</div>
-                                <div class="temp-display" id="rr-temp-middle">--</div>
-                                <div class="temp-display" id="rr-temp-outer">--</div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <h2>Tire Tread Remaining</h2>
-                <div class="tire-pressure-grid">
-                    <div class="pressure-corner lf" id="lf-pressure">--</div>
-                    <div class="pressure-corner rf" id="rf-pressure">--</div>
-                    <div class="pressure-corner lr" id="lr-pressure">--</div>
-                    <div class="pressure-corner rr" id="rr-pressure">--</div>
-                </div>
+            <!-- Best Lap-->
+            <div class="pit-wizard">
+                <h3>Best Lap</h3>
+                <table class="timing-table" id="best-ses-lap">
+                    <thead>
+                        <tr>
+                            <th>Lap</th>
+                            <th>Time</th>
+                            <th>Live Delta</th>
+                        </tr>
+                    </thead>
+                    <tbody id="bestlap-body">
+                        <tr>
+                            <td id="best-lap">--</td>
+                            <td id="best-time">--:--</td>
+                            <td id="delta-to-best">--</td>
+                        </tr>
+                    </tbody>
+                </table>
             </div>
 
             <div class="pit-wizard">
                 <h3>Lap Time Wizard</h3>
                 <div class="pit-info">
                     <div class="pit-info-row">
-                        <span>Average Pace:</span>
-                        <span id="avg-pace">--:--</span>
+                        <span style="font-size: 15px;">Average Pace:</span>
+                        <span id="avg-pace" style="font-size: 15px;">--:--</span>
                     </div>
                     <div class="pit-info-row">
-                        <span>Predicted Next Lap:</span>
-                        <span id="predicted-lap">--:--</span>
+                        <span style="font-size: 15px;">Predicted Next Lap:</span>
+                        <span id="predicted-lap" style="font-size: 15px;">--:--</span>
                     </div>
                 </div>
             </div>
@@ -122,15 +59,28 @@
                 <h3>Pit Stop Wizard</h3>
                 <div class="pit-info">
                     <div class="pit-info-row">
-                        <span>Predicted Pit Stops Remaining:</span>
-                        <span id="predicted-stops">--</span>
+                        <span style="font-size: 15px;">Est. pit stops remaining:</span>
+                        <span  style="font-size: 15px;" id="predicted-stops">--</span>
                     </div>
                     <div class="pit-info-row">
-                        <span>Predicted laps left till next stop:</span>
-                        <span id="laps-fuel">--</span>
+                        <span style="font-size: 15px;">Laps left till next stop:</span>
+                        <span style="font-size: 15px;" id="laps-fuel">--</span>
                     </div>
                     <div class="pit-info-row">
-                        <div>Predicted time left till next stop: <span id="time-fuel">--</span></div>
+                        <span style="font-size: 15px;">Time left till next stop:</span> 
+                        <span style="font-size: 15px;" id="time-fuel">--:--</span>
+                    </div>
+                    <div class="pit-info-row">
+                        <span style="font-size: 15px;">Est. pit stop time loss: </span>
+                        <span style="font-size: 15px;" id="pit-time-loss">--:--</span>
+                    </div>
+                    <div class="pit-info-row">
+                        <span style="font-size: 15px;">Est. position at pit exit: </span>
+                        <span style="font-size: 15px;" id="pit-exit-pos">--</span>
+                    </div>
+                    <div class="pit-info-row">
+                        <span style="font-size: 15px;">Est. delta to behind at pit exit: </span>
+                        <span style="font-size: 15px;" id="pit-exit-pos-delta">--:--</span>
                     </div>
                 </div>
             </div>
@@ -159,6 +109,28 @@
                 </div>
             </div>
 
+            <div class="sectors-module">
+                    <!-- Car Info-->
+                    <table class="sectors-table">
+                        <thead>
+                            <tr>
+                                <th>Speed</th>
+                                <th>Gear</th>
+                                <th>RPM</th>
+                                <th>Fuel</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td id="gear">-</td>
+                                <td><span id="rpm">----</span> RPM</td>
+                                <td id="speed">--- MPH</td>
+                                <td id="fuel">-- L</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
             <!-- Sectors Table -->
             <div class="sectors-module">
                 <h3>Sector Times</h3>
@@ -181,6 +153,8 @@
                     </tbody>
                 </table>
                 <div>
+                
+                <!-- Corner Speeds -->
                 <h3>Corner Speeds</h3>
                 <table class="sectors-table">
                     <thead>
@@ -235,26 +209,6 @@
                             <td id="timing-4-pos">--</td>
                             <td id="timing-4-gap">--</td>
                             <td id="timing-4-delta">--</td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
-
-            <div class="section">
-                <h3>Best Lap</h3>
-                <table class="timing-table" id="best-ses-lap">
-                    <thead>
-                        <tr>
-                            <th>Lap</th>
-                            <th>Time</th>
-                            <th>Live Delta</th>
-                        </tr>
-                    </thead>
-                    <tbody id="bestlap-body">
-                        <tr>
-                            <td id="best-lap">--</td>
-                            <td id="best-time">--:--</td>
-                            <td id="delta-to-best">--</td>
                         </tr>
                     </tbody>
                 </table>
@@ -432,80 +386,6 @@
 
             if (data.stint_lap){
                 document.getElementById('stint-lap').textContent = data.stint_lap;
-            }
-
-            // Update tire temps and colors - USE BACKEND COLORS
-            if (data.tire_temps) {
-                // Left Front
-                const lfTemps = data.tire_temps.lf_temps || [];
-                const lfColors = data.tire_temps.lf_temps_colors || [];
-                
-                document.getElementById('lf-temp-outer').textContent = Math.round(lfTemps[0] || 0);
-                document.getElementById('lf-temp-middle').textContent = Math.round(lfTemps[1] || 0);
-                document.getElementById('lf-temp-inner').textContent = Math.round(lfTemps[2] || 0);
-
-                document.getElementById('tire-lf-outer').style.background = lfColors[0] || '#000000';
-                document.getElementById('tire-lf-middle').style.background = lfColors[1] || '#000000';
-                document.getElementById('tire-lf-inner').style.background = lfColors[2] || '#000000';
-
-                // Right Front
-                const rfTemps = data.tire_temps.rf_temps || [];
-                const rfColors = data.tire_temps.rf_temps_colors || [];
-                
-                document.getElementById('rf-temp-outer').textContent = Math.round(rfTemps[2] || 0);
-                document.getElementById('rf-temp-middle').textContent = Math.round(rfTemps[1] || 0);
-                document.getElementById('rf-temp-inner').textContent = Math.round(rfTemps[0] || 0);
-                
-                document.getElementById('tire-rf-outer').style.background = rfColors[2] || '#000000';
-                document.getElementById('tire-rf-middle').style.background = rfColors[1] || '#000000';
-                document.getElementById('tire-rf-inner').style.background = rfColors[0] || '#000000';
-
-                // Left Rear
-                const lrTemps = data.tire_temps.lr_temps || [];
-                const lrColors = data.tire_temps.lr_temps_colors || [];
-                
-                document.getElementById('lr-temp-outer').textContent = Math.round(lrTemps[0] || 0);
-                document.getElementById('lr-temp-middle').textContent = Math.round(lrTemps[1] || 0);
-                document.getElementById('lr-temp-inner').textContent = Math.round(lrTemps[2] || 0);
-                
-                document.getElementById('tire-lr-outer').style.background = lrColors[0] || '#000000';
-                document.getElementById('tire-lr-middle').style.background = lrColors[1] || '#000000';
-                document.getElementById('tire-lr-inner').style.background = lrColors[2] || '#000000';
-
-                // Right Rear
-                const rrTemps = data.tire_temps.rr_temps || [];
-                const rrColors = data.tire_temps.rr_temps_colors || [];
-                
-                document.getElementById('rr-temp-outer').textContent = Math.round(rrTemps[2] || 0);
-                document.getElementById('rr-temp-middle').textContent = Math.round(rrTemps[1] || 0);
-                document.getElementById('rr-temp-inner').textContent = Math.round(rrTemps[0] || 0);
-                
-                document.getElementById('tire-rr-outer').style.background = rrColors[2] || '#000000';
-                document.getElementById('tire-rr-middle').style.background = rrColors[1] || '#000000';
-                document.getElementById('tire-rr-inner').style.background = rrColors[0] || '#000000';
-            }
-
-            if (data.consumables) {
-                // Add fuel remaining (fixed typo)
-                document.getElementById('fuel').textContent = Math.round(data.consumables.fuel_level ?? 0) + ' L';
-
-                // Wear values (added null checks)
-                const lfWear = data.consumables.lf_wear || [0, 0, 0];
-                const rfWear = data.consumables.rf_wear || [0, 0, 0];
-                const lrWear = data.consumables.lr_wear || [0, 0, 0];
-                const rrWear = data.consumables.rr_wear || [0, 0, 0];
-
-                // Calculate average wear for pressure display
-                const lfAvgWear = Math.round((((lfWear[0] || 0) + (lfWear[1] || 0) + (lfWear[2] || 0)) / 3) * 100);
-                const rfAvgWear = Math.round((((rfWear[0] || 0) + (rfWear[1] || 0) + (rfWear[2] || 0)) / 3) * 100);
-                const lrAvgWear = Math.round((((lrWear[0] || 0) + (lrWear[1] || 0) + (lrWear[2] || 0)) / 3) * 100);
-                const rrAvgWear = Math.round((((rrWear[0] || 0) + (rrWear[1] || 0) + (rrWear[2] || 0)) / 3) * 100);
-
-                // Update pressure displays
-                document.getElementById('lf-pressure').textContent = lfAvgWear;
-                document.getElementById('rf-pressure').textContent = rfAvgWear;
-                document.getElementById('lr-pressure').textContent = lrAvgWear;
-                document.getElementById('rr-pressure').textContent = rrAvgWear;
             }
 
             // Update footer info bar
