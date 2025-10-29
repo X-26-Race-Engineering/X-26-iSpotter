@@ -206,7 +206,7 @@
         <!-- Right Panel -->
         <div class="right-panel">
             <div class="section">
-                <h3>Relative Timing</h3>
+                <h3><span id="class">Class</span> Relative Timing</h3>
                 <table class="timing-table" id="relative-timing">
                     <thead>
                         <tr>
@@ -399,6 +399,7 @@
                 const position = data.relative_timing.car_idx_position || '--';
                 const suffix = position === 1 ? 'st' : position === 2 ? 'nd' : position === 3 ? 'rd' : 'th';
                 document.getElementById('position').textContent = position + suffix;
+                document.getElementById('class').textContent = data.relative_timing.me_class ?? 'Class';
             }
 
             if (data.lap_times) {
