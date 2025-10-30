@@ -6,6 +6,7 @@
     <title>X-26 iSpotter</title>
     <link rel="stylesheet" href="/Styling/styles.css">
     <script src="https://cdn.socket.io/4.5.4/socket.io.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
     <div class="dashboard">
@@ -109,14 +110,34 @@
                 </div>
             </div>
 
+            <!-- Steering Balance Module -->
+            <div class="steering-balance-module">
+                <div class="balance-meter-wrapper">
+                    <div class="balance-meter-background">
+                        <div class="balance-center-line"></div>
+                        <div class="balance-meter-bar" id="balanceBar"></div>
+                    </div>
+                </div>
+                <div class="steering-meter-wrapper">
+                    <div class="steering-meter-background">
+                        <div class="steering-center-line"></div>
+                        <div class="steering-meter-bar" id="steeringBar"></div>
+                    </div>
+                </div>
+                <div class="balance-state-display">
+                    <span class="balance-confidence-indicator" id="balanceStateText">NEUTRAL</span>
+                    <div class="balance-confidence-indicator">PREDICTION CONFIDENCE: <span class="balance-confidence-indicator" id="balanceConfidenceText">--</span></div>
+                </div>
+            </div>
+
             <div class="sectors-module">
                     <!-- Car Info-->
                     <table class="sectors-table">
                         <thead>
                             <tr>
-                                <th>Speed</th>
                                 <th>Gear</th>
                                 <th>RPM</th>
+                                <th>Speed</th>
                                 <th>Fuel</th>
                             </tr>
                         </thead>
@@ -331,6 +352,46 @@
             document.getElementById('clutch-fill').style.height = (clutch * 100) + '%';
         }
 
+        function getStateColor(state) {
+            switch(state) {
+                case 'UNDERSTEER': return '#d70000';
+                case 'OVERSTEER': return '#029000';
+                case 'NEUTRAL': return '#4caf50';
+                case 'TRANSIENT': return '#ff9800';
+                default: return '#808080';
+            }
+        }
+
+        function updateSteeringBalance(data) {
+            const steeringBar = document.getElementById('steeringBar');
+            const balanceBar = document.getElementById('balanceBar');
+            const stateText = document.getElementById('balanceStateText');
+            const confidenceText = document.getElementById('balanceConfidenceText');
+
+            // Convert steering angle from radians to degrees, then to percentage
+            const steeringAngleDeg = data.car_idx_steer * (180 / Math.PI);
+            const steeringPercent = (steeringAngleDeg / 360) * 100;
+            const steeringClampedPercent = Math.max(-50, Math.min(50, steeringPercent));
+
+            // Position the steering bar
+            steeringBar.style.left = `${50 + steeringClampedPercent}%`;
+
+            if (data.is_valid) {
+                const balancePercent = data.balance_clamped / 2; // Scale ±100 to ±50%
+                balanceBar.style.left = `${50 + balancePercent}%`;
+                balanceBar.style.backgroundColor = data.color;  // Apply your gradient color
+                balanceBar.style.opacity = data.confidence;     // Fade based on confidence
+            } else {
+                // Invalid data - center and gray out
+                balanceBar.style.left = '50%';
+                balanceBar.style.backgroundColor = '#808080';
+                balanceBar.style.opacity = '0.3';
+            }
+
+            stateText.textContent = data.state;
+            stateText.style.color = getStateColor(data.state);
+        }
+
         // Format time as MM:SS.SSS
         function formatTime(seconds) {
             if (!seconds || seconds <= 0) return '--:--';
@@ -457,6 +518,10 @@
                         deltaCell.textContent = deltas[gapIndex] ?? '--';
                     }
                 }
+            }
+
+            if (data.dynamics){
+                updateSteeringBalance(data.dynamics);
             }
         });
 
