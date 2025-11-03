@@ -154,14 +154,19 @@
 
             <!-- Sectors Table -->
             <div class="sectors-module">
-                <h3>Sector Times</h3>
+                <h3>Mini-Sector Times</h3>
                 <table class="sectors-table">
                     <thead>
                         <tr>
-                            <th>S1</th>
-                            <th>S2</th>
-                            <th>S3</th>
-                            <th>S4</th>
+                            <th>MS1</th>
+                            <th>MS2</th>
+                            <th>MS3</th>
+                            <th>MS4</th>
+                            <th>MS5</th>
+                            <th>MS6</th>
+                            <th>MS7</th>
+                            <th>MS8</th>
+                            <th>MS9</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -170,6 +175,11 @@
                             <td id="sector-2">--:--</td>
                             <td id="sector-3">--:--</td>
                             <td id="sector-4">--:--</td>
+                            <td id="sector-5">--:--</td>
+                            <td id="sector-6">--:--</td>
+                            <td id="sector-7">--:--</td>
+                            <td id="sector-8">--:--</td>
+                            <td id="sector-9">--:--</td>
                         </tr>
                     </tbody>
                 </table>
@@ -381,6 +391,7 @@
                 balanceBar.style.left = `${50 + balancePercent}%`;
                 balanceBar.style.backgroundColor = data.color;  // Apply your gradient color
                 balanceBar.style.opacity = data.confidence;     // Fade based on confidence
+                confidenceText.textContent = data.confidence;
             } else {
                 // Invalid data - center and gray out
                 balanceBar.style.left = '50%';
@@ -414,16 +425,18 @@
                 const position = data.relative_timing.car_idx_position || '--';
                 const suffix = position === 1 ? 'st' : position === 2 ? 'nd' : position === 3 ? 'rd' : 'th';
                 document.getElementById('position').textContent = position + suffix;
-                document.getElementById('class').textContent = data.relative_timing.me_class ?? 'Class';
+                document.getElementById('class').textContent = data.relative_timing.car_idx_class ?? 'Class';
             }
 
             if (data.lap_times) {
                 document.getElementById('lap').textContent = data.lap_times.lap || '--';
                 document.getElementById('current-lap-time').textContent = formatTime(data.lap_times.lap_current_lap_time);
                 const blap = data.lap_times.lap_best_lap_time;
-                const delta = data.lap_times.live_delta || 0.0;
-                if (blap && delta){
-                    document.getElementById('predicted-lap').textContent = formatTime(blap + delta);
+                const p_delta = data.lap_times.live_delta || 0.0;
+                const l_delta = data.lap_times.leader_delta || 0.0;
+
+                if (blap && p_delta){
+                    document.getElementById('predicted-lap').textContent = formatTime(blap + p_delta);
                 }
                 const blb = document.getElementById('bestlap-body');
                 if (blb) { 
@@ -434,9 +447,23 @@
 
                 const sector = data.lap_times.current_sector || 1;
                 document.getElementById(`sector-${sector}`).textContent = formatTime(data.lap_times.sector_time);
+                document.getElementById(`sector-${sector}`).style.fontSize = '16px';
 
-                if (delta) {
-                    if (delta <= 0) {
+                if (sector == 1) {
+                    for (let i = 2; i < 10; i++) {
+                        document.getElementById(`sector-${i}`).style.fontSize = '10px';
+                        document.getElementById(`sector-${i}`).textContent = '--:--';
+                        document.getElementById(`sector-${i}`).style.backgroundColor = '#2a2a2a';
+                    }
+                }
+                if (sector > 1) {
+                    document.getElementById(`sector-${sector - 1}`).style.fontSize = '10px';
+                }
+
+                if (p_delta && l_delta) {
+                    if (p_delta <= 0 && l_delta <= 0) {
+                        document.getElementById(`sector-${sector}`).style.backgroundColor = '#d900ffff';
+                    } else if (p_delta <= 0) {
                         document.getElementById(`sector-${sector}`).style.backgroundColor = '#00ff00';
                     } else {
                         document.getElementById(`sector-${sector}`).style.backgroundColor = '#ff0000';
@@ -469,11 +496,18 @@
                 updateLineChart(throttle, brake, clutch);
             }
 
+            if (data.consumables){
+                document.getElementById("fuel").textContent = `${data.consumables.fuel_level} L` || '-- L';
+            }
+
             if (data.predictives) {
                 document.getElementById("laps-fuel").textContent = data.predictives.Fuel_Laps_Remaining || '--';
                 document.getElementById("time-fuel").textContent = formatTime(data.predictives.Fuel_Time_Remaining) || '--';
                 document.getElementById("predicted-stops").textContent = data.predictives.Predicted_Stops_Remaining || '--';
                 document.getElementById("avg-pace").textContent = formatTime(data.predictives.Average_Pace) || '--:--';
+                document.getElementById("pit-time-loss").textContent = formatTime(data.predictives.Predicted_Stop) || '--:--';
+                document.getElementById("pit-exit-pos").textContent = data.predictives.Position_At_Pit_Exit || '--';
+                document.getElementById("pit-exit-pos-delta").textContent = formatTime(data.predictives.Delta_To_Next) || '--:--';
             }
 
             if (data.relative_timing) {

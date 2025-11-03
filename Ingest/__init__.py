@@ -14,15 +14,9 @@ import math
 
 # Global state
 stored_telem = {
-    'Tire Tread PCT': [],
     'Fuel Usage': [],
     'Fuel Per Hour': [],
     'Lap Times': []
-}
-
-_curr_stored_lap = {
-    'sectors': [],      # Sector times (4 sectors per lap)
-    'time': 0
 }
 
 frame = {}
@@ -33,7 +27,7 @@ stream_running = False
 ir_instance = None
 connect_status = False
 stop_requested = False
-last_sector = -1  # Track which sector we're in (0-3)
+stop_times = []
 last_stop_time = 0.0
 
 
@@ -82,8 +76,8 @@ def start_stream(interrupt_act=None):
     global stored_telem
     global stop_requested
     global stint_l
-    global _curr_stored_lap
-    global last_sector
+    global last_stop_time
+    global stop_times
     
     stream_running = True
     ir_instance = irsdk.IRSDK()
@@ -110,14 +104,6 @@ def start_stream(interrupt_act=None):
             # Ensure lap_times exists
             if 'lap_times' not in frame:
                 frame['lap_times'] = {}
-                
-            if len(_curr_stored_lap['sectors']) > 0 and frame['lap_times']['lap_current_lap_time'] is not None and float(frame['lap_times']['lap_current_lap_time']) > 0:
-                frame['lap_times']['sector_time'] = float(frame['lap_times']['lap_current_lap_time']) - sum(_curr_stored_lap['sectors'])
-                frame['lap_times']['current_sector'] = last_sector + 1
-                
-            else:
-                frame['lap_times']['sector_time'] = float(frame['lap_times']['lap_current_lap_time'])
-                frame['lap_times']['current_sector'] = last_sector + 1
                         
             # Calculate live delta EVERY frame for smooth updates 
             if frame['lap_times']['lap_best_lap_time'] is not None and frame['relative_timing']['car_idx_lapdist_pct'] is not None:
@@ -127,75 +113,69 @@ def start_stream(interrupt_act=None):
                 # Interpolate best lap time at current position
                 lap_pct = float(frame['relative_timing']['car_idx_lapdist_pct'] or 0.0)
                 estimated_best_time_at_position =  float(frame['lap_times']['lap_best_lap_time'] or 0.0) * lap_pct
+                estimated_leader_time_at_position = float(frame['relative_timing']['best_class_time'] or 0.0) *lap_pct
                 
                 # Delta = current time - where best lap was at this point
                 frame['lap_times']['live_delta'] = round(current_lap_time - estimated_best_time_at_position, 3)
+                frame['lap_times']['leader_delta'] = round(current_lap_time - estimated_leader_time_at_position, 3)
                 
             else:
                 # No best lap reference yet
                 frame['lap_times']['live_delta'] = 0.0
             
-            # Sector tracking - check if we've crossed a 25% threshold for sector times
-            if 'relative_timing' in frame and 'car_idx_lapdist_pct' in frame['relative_timing']:
-                lap_pct = float(frame['relative_timing']['car_idx_lapdist_pct'] or 0.0) * 100
-                current_sector = int(lap_pct // 25)  # Which 25% segment (0-3)
+            # Calculate current sector time using estimation (no storage needed)
+            if 'lap_times' in frame and 'relative_timing' in frame:
+                current_lap_time = float(frame['lap_times'].get('lap_current_lap_time', 0.0) or 0.0)
+                best_lap_time = float(frame['lap_times'].get('lap_best_lap_time', 0.0) or 0.0)
+                lap_pct = float(frame['relative_timing'].get('car_idx_lapdist_pct', 0.0) or 0.0)
                 
-                # Only trigger when we enter a new sector
-                if current_sector != last_sector and current_sector >= 0 and current_sector < 4:
-                    last_sector = current_sector
-                    store_sector_time(current_sector)
+                NUM_SECTORS = 9  # Easy to change: 4, 9, 16, etc.
+                current_sector = int((lap_pct * 100) // (100 / NUM_SECTORS))  # 0-8 for 9 sectors
+                
+                if best_lap_time > 0 and current_lap_time > 0:
+                    # Estimate time at start of current sector
+                    sector_start_time = best_lap_time * (current_sector / NUM_SECTORS)
+                    # Time spent in current sector
+                    frame['lap_times']['sector_time'] = current_lap_time - sector_start_time
+                    frame['lap_times']['current_sector'] = current_sector + 1  # Display as 1-9
+                else:
+                    # No best lap yet - just show current lap time
+                    frame['lap_times']['sector_time'] = current_lap_time
+                    frame['lap_times']['current_sector'] = current_sector + 1
             
-            # Detect lap completion
+            # Detect lap completion - store lap data and reset tracking
             if (prev_frame and 'lap_times' in prev_frame and 
                 frame and 'lap_times' in frame and
                 int(prev_frame['lap_times']['lap'] or 0) < 
                 int(frame['lap_times']['lap'] or 0)):
                 
-                # Store lap data
                 if frame['lap_times'].get('lap_last_lap_time'):
                     stored_telem['Lap Times'].append(frame['lap_times']['lap_last_lap_time'])
-                    _curr_stored_lap['time'] = frame['lap_times']['lap_last_lap_time']
                 
                 if frame.get('consumables'):
                     stored_telem['Fuel Usage'].append(frame['consumables']['fuel_level'])
                     stored_telem['Fuel Per Hour'].append(frame['consumables']['fuel_use_per_hour'])
-                    
-                    LFWear = sum(frame['consumables']['lf_wear']) / 3
-                    RFWear = sum(frame['consumables']['rf_wear']) / 3
-                    LRWear = sum(frame['consumables']['lr_wear']) / 3
-                    RRWear = sum(frame['consumables']['rr_wear']) / 3
-                    
-                    avg_wear = (LFWear + RFWear + LRWear + RRWear) / 4
-                    stored_telem['Tire Tread PCT'].append(avg_wear)
                 
                 stint_l += 1
-                
-                # Reset current lap tracking
-                _curr_stored_lap = {
-                    'sectors': [],
-                    'time': 0
-                }
-                last_sector = -1  # Reset sector tracking
         
         # Handle pit stop telemetry storage (outside lock to avoid issues)
-        if frame and 'consumables' in frame and len(stored_telem['Fuel Usage']) > 0:
-            fuel_increase = float(frame['consumables'].get('fuel_level', 0.0) or 0.0) - float(stored_telem["Fuel Usage"][-1] or 0.0)
-            
-            # Pit stop detected - fuel increased by more than 5 liters
-            if fuel_increase > 5.0:
+        if frame['pit_status'] == 1:
+
+            if stored_telem['Fuel Usage'] != []:
                 print("Pit stop detected - resetting stint data")
                 stored_telem['Fuel Usage'] = []
                 stored_telem['Fuel Per Hour'] = []
-                stored_telem['Tire Tread PCT'] = []
                 stored_telem['Lap Times'] = []
                 stint_l = 0
                 
-                # Reset lap tracking
-                _curr_stored_lap = {
-                    'sectors': [],
-                    'time': 0
-                    }
-                last_sector = -1
+                #Adding last pit stop to pit stop time list
+                stop_times.append(last_stop_time)
+                
+                #Resetting timer
+                last_stop_time = 0.0
+                
+            #Time pit stop
+            last_stop_time += (1/60)
         
         time.sleep(1/60)
 
@@ -239,12 +219,14 @@ def get_predictives():
     """
     global stored_telem
     global frame
+    global stop_times
     
     stats = {
         'Fuel_Laps_Remaining': 0,
         'Fuel_Time_Remaining': 0,
         'Predicted_Stops_Remaining': 0,
-        'Average_Pace': 999.99
+        'Average_Pace': 999.99,
+        'Predicted_Stop': 999.99
     }
     
     if not frame or 'lap_times' not in frame:
@@ -290,31 +272,31 @@ def get_predictives():
     
     stats['Predicted_Stops_Remaining'] = int(min(fs_remaining, ft_remaining))
     
+    if len(stop_times) > 0:
+        stats['Predicted_Stop'] = pred_stop = float((sum(stop_times) / len(stop_times)) or 0.0)
+        
+        deltas = frame['relative_timing']['deltas']
+        
+        idx = int(frame['relative_timing']['car_idx_position'] or 1) 
+        
+        stats['Position_At_Pit_Exit'] = idx
+        
+        stats['Delta_To_Next'] = 0.0
+        
+        while idx < len(deltas):
+            
+            if float(deltas[idx] or 0.0) > pred_stop:
+                #Position at pit exit assigned as position ahead of idx
+                stats['Position_At_Pit_Exit'] = idx - 1
+                
+                stats['Delta_To_Next'] = round(float(deltas[idx] or 0.0) - pred_stop, 3)
+                break
+            
+            idx += 1
+            
+    
     return stats
 
-
-def store_sector_time(sector):
-    """
-    Store sector time when crossing 25% thresholds
-    
-    Args:
-        sector: Sector number (1-4)
-    """
-    global _curr_stored_lap
-    global frame
-    
-    if 'lap_times' not in frame:
-        return
-    
-    current_lap_time = float(frame['lap_times'].get('lap_current_lap_time', 0.0) or 0.0)
-    
-    # Calculate current sector time (time since last sector)
-    if len(_curr_stored_lap['sectors']) > 0:
-        current_sector_time = current_lap_time - sum(_curr_stored_lap['sectors'])
-    else:
-        current_sector_time = current_lap_time
-        
-    _curr_stored_lap['sectors'].append(current_sector_time)
 
 
 # Module exports

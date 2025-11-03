@@ -8,6 +8,11 @@ import numpy as np
 
 class stream_handlers:
     
+    # Smoothing variables for parse_dynamics
+    _balance_ema = 0.0
+    _alpha = 0.25
+    _prev_state = 'NEUTRAL'
+    
     @staticmethod   
     def parse_basic_forces(stream):
         """Parse basic physics data including G-forces and vehicle dynamics"""
@@ -22,6 +27,12 @@ class stream_handlers:
     def parse_dynamics(stream):
         """Parse steering data and calculate understeer/oversteer balance"""
         me_idx = int(stream['PlayerCarIdx'] or 1)
+        
+        # Initialize smoothing (only runs once)
+        if not hasattr(stream_handlers, '_balance_ema'):
+            stream_handlers._balance_ema = 0.0
+            stream_handlers._alpha = 0.25  # Tunable: 0.1-0.5
+            stream_handlers._prev_state = 'NEUTRAL'
         
         # Color gradients
         green_gradient = [
@@ -82,28 +93,44 @@ class stream_handlers:
                 abs_bal = abs(bal)
                 color_idx = min(int(abs_bal / 10), 9)
             
-                # Determine bar color
-                if bal_raw > 0:
-                    bal_disp = -bal_raw * np.sign(steerAngle)
-                    color = red_gradient[color_idx]
-                else:
-                    bal_disp = bal_raw * np.sign(steerAngle)
-                    color = green_gradient[color_idx]
+                # Calculate raw display value
+                bal_disp_raw = -bal_raw * np.sign(yaw_rate)
                 
+                # EMA smoothing
+                stream_handlers._balance_ema = (
+                    stream_handlers._alpha * bal_disp_raw + 
+                    (1 - stream_handlers._alpha) * stream_handlers._balance_ema
+                )
+                bal_disp = stream_handlers._balance_ema
+                
+                # Determine color based on smoothed value
+                if bal_disp * np.sign(yaw_rate) < 0:
+                    color = green_gradient[color_idx]  # Oversteer
+                else:
+                    color = red_gradient[color_idx]    # Understeer
+        else:
+            # Decay toward zero when invalid
+            stream_handlers._balance_ema *= 0.95
+            bal_disp = stream_handlers._balance_ema
+        
         bal_clamped = max(-100, min(100, bal_disp))
         
-        # Determine state
+        # State determination with hysteresis
         if not is_valid:
             state = 'INVALID'
         elif is_transient:
             state = 'TRANSIENT'
-        elif abs(bal) < 5:
-            state = 'NEUTRAL'
-        elif bal > 0:
-            state = 'UNDERSTEER'
         else:
-            state = 'OVERSTEER'
-                
+            if abs(bal) < 8:
+                state = 'NEUTRAL'
+            elif bal > 12:
+                state = 'UNDERSTEER'
+                stream_handlers._prev_state = 'UNDERSTEER'
+            elif bal < -12:
+                state = 'OVERSTEER'
+                stream_handlers._prev_state = 'OVERSTEER'
+            else:
+                state = stream_handlers._prev_state
         
         return {
             'lat_g': lat_accel_true / g,
@@ -125,6 +152,7 @@ class stream_handlers:
         me_idx = int(stream['PlayerCarIdx'] or 1)
         me_class = stream['CarIdxClass'][me_idx]
         me_pos = int(stream['CarIdxClassPosition'][me_idx] or 1)
+        leader_idx = 1
         
         ahead_idx = me_idx - 1
         behind_idx = me_idx + 1
@@ -132,39 +160,43 @@ class stream_handlers:
         gaps = [0.0]
         deltas = [0.0]
         
-        while ahead_idx >= 1 or behind_idx < 100:
-            if (int(stream['CarIdxClassPosition'][ahead_idx] or 1) < me_pos) and stream['CarIdxClass'][ahead_idx] == me_class and ahead_idx > 0:
+        while ahead_idx >= 1 or behind_idx <= 100:
+            if ahead_idx > 0 and (int(stream['CarIdxClassPosition'][ahead_idx] or 100) < me_pos) and stream['CarIdxClass'][ahead_idx] == me_class:
                 gap = round(abs(float(stream['CarIdxF2Time'][ahead_idx] or 0.0)
-                - float(stream['CarIdxF2Time'][me_idx] or 0.0)), 1)
+                    - float(stream['CarIdxF2Time'][me_idx] or 0.0)), 1)
                 gaps.insert(0, gap)
                 
                 delta = round(
                 float(stream['CarIdxLastLapTime'][ahead_idx] or 0.0)
-                - float(stream['CarIdxLastLapTime'][me_idx] or 0.0), 3)
+                    - float(stream['CarIdxLastLapTime'][me_idx] or 0.0), 3)
                 deltas.insert(0, delta)
                 
+                if stream['CarIdxClassPosition'][ahead_idx] == 1:
+                    leader_idx = ahead_idx
+                
             try:
-                if (int(stream['CarIdxClassPosition'][behind_idx] or 1) < me_pos) and stream['CarIdxClass'][behind_idx] == me_class and behind_idx < 100:
+                if behind_idx < 101 and (int(stream['CarIdxClassPosition'][behind_idx] or 1) > me_pos) and stream['CarIdxClass'][behind_idx] != None and stream['CarIdxClass'][behind_idx] == me_class:
                     gap = round(abs(float(stream['CarIdxF2Time'][behind_idx] or 0.0)
-                - float(stream['CarIdxF2Time'][me_idx] or 0.0)), 1)
+                    - float(stream['CarIdxF2Time'][me_idx] or 0.0)), 1)
                     gaps.append(gap)
                     
                     delta = round(
-                float(stream['CarIdxLastLapTime'][behind_idx] or 0.0)
-                - float(stream['CarIdxLastLapTime'][me_idx] or 0.0), 3)
+                    float(stream['CarIdxLastLapTime'][behind_idx] or 0.0)
+                    - float(stream['CarIdxLastLapTime'][me_idx] or 0.0), 3)
                     deltas.append(delta)
             except:
-                continue
+                pass
             
             ahead_idx -= 1
             behind_idx += 1
             
         return {
-            'deltas': tuple(deltas),
-            'gaps': tuple(gaps),
+            'deltas': deltas,
+            'gaps': gaps,
             'car_idx_lapdist_pct': float(stream['CarIdxLapDistPct'][me_idx] or 0.0),
             'car_idx_position': me_pos,
-            'car_idx_class': me_class
+            'car_idx_class': me_class,
+            'best_class_time': float(stream['CarIdxBestLapTime'][leader_idx] or 0.0)
             }
 
     
@@ -178,6 +210,7 @@ class stream_handlers:
             'lap_current_lap_time': float(stream['LapCurrentLapTime'] or 0.0),
             'lap_best_lap': int(stream['LapBestLap'] or 1),
             'live_delta': 0.0,
+            'leader_delta': 0.0,
             'lap': int(stream['Lap'] or 0),
             'laps_remaining': int(stream['SessionLapsRemainEx'] or 0),
             'time_remaining': float(stream['SessionTimeRemain'] or 0.0),
@@ -188,7 +221,7 @@ class stream_handlers:
     def parse_consumables(stream):
         """Parse fuel and tire data"""
         return {
-            'fuel_level': float(stream['FuelLevel'] or 0.0),
+            'fuel_level': round(float(stream['FuelLevel'] or 0.0), 1),
             'fuel_level_pct': float(stream['FuelLevelPct'] or 0.0),
             'fuel_use_per_hour': float(stream['FuelUsePerHour'] or 0.0),
             'lf_wear': (float(stream['LFwearL'] or 0.0), float(stream['LFwearM'] or 0.0), float(stream['LFwearR'] or 0.0)),
