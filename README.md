@@ -82,6 +82,8 @@ Build X-26-iSpotter from the source and install dependencies:
 
 **Run the install_telemetry.bat file:**
 
+You can either run the following command in terminal OR navigate to the install_telemetry.bat file in your file explorer and double click the file.
+
 ```sh
 ❯ .\install_telemetry.bat
 ```
@@ -91,7 +93,7 @@ Build X-26-iSpotter from the source and install dependencies:
 ### Usage
 
 If install_telemetry executed correctly, a file called run_telemetry should be created, alongside a desktop shortcut that opens run_telemetry.
-You can use either the shortcut, a prompt at the end of install_telemetry, or the following command:
+You can use either the shortcut, a prompt at the end of install_telemetry, double click the run_telemetry.bat file in file explorer, or run the following command:
 
 ```sh
 .\run_telemetry.bat
