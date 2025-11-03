@@ -93,7 +93,7 @@ If install_telemetry executed correctly, a file called run_telemetry should be c
 You can use either the shortcut, a prompt at the end of install_telemetry, or the following command:
 
 ```sh
-./run_telemetry.bat
+.\run_telemetry.bat
 ```
 
 ### Feedback
