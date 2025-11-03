@@ -4,7 +4,8 @@
 <div align="center">
 
 
-# X-26-ISPOTTER
+# X-26 ISPOTTER
+*by X-26 Race Engineering*
 
 <em>Unleash Racing Insights, Dominate Every Lap</em>
 
