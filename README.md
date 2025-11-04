@@ -96,6 +96,7 @@ You can use either the shortcut, a prompt at the end of install_telemetry, or th
 ```sh
 .\run_telemetry.bat
 ```
+<img width="947" height="481" alt="dashboard_screenshot" src="https://github.com/user-attachments/assets/5bf2bf7e-8e9a-4cdc-aaf6-7a19d29e3773" />
 
 ### Feedback
 
