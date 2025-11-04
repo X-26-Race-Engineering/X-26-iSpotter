@@ -151,6 +151,8 @@ echo echo Press Ctrl+C to stop the server
 echo.
 echo echo ============================================================
 echo.
+echo start http://localhost:5000
+echo.
 echo python app.py
 echo.
 echo if errorlevel 1 (
