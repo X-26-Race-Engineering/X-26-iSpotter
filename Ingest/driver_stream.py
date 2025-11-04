@@ -115,7 +115,7 @@ class stream_handlers:
         
         bal_clamped = max(-100, min(100, bal_disp))
         
-        # State determination with hysteresis
+        # State determination
         if not is_valid:
             state = 'INVALID'
         elif is_transient:
@@ -149,17 +149,21 @@ class stream_handlers:
     @staticmethod
     def parse_relative_timing(stream):
         """Parse relative timing and distance data"""
+        #Grab current players position and index on track
         me_idx = int(stream['PlayerCarIdx'] or 1)
         me_class = stream['CarIdxClass'][me_idx]
         me_pos = int(stream['CarIdxClassPosition'][me_idx] or 1)
         leader_idx = 1
         
+        #Initialize iterating indexes
         ahead_idx = me_idx - 1
         behind_idx = me_idx + 1
         
+        #Initialize lists
         gaps = [0.0]
         deltas = [0.0]
         
+        #Iteratre through 100 idxs and check for gaps and deltas
         while ahead_idx >= 1 or behind_idx <= 100:
             if ahead_idx > 0 and (int(stream['CarIdxClassPosition'][ahead_idx] or 100) < me_pos) and stream['CarIdxClass'][ahead_idx] == me_class:
                 gap = round(abs(float(stream['CarIdxF2Time'][ahead_idx] or 0.0)
@@ -203,7 +207,6 @@ class stream_handlers:
     @staticmethod  
     def parse_lap_times(stream):
         """Parse lap timing data"""
-        me_idx  = int(stream['PlayerCarIdx'])
         return {
             'lap_best_lap_time': float(stream['LapBestLapTime'] or 0.0),
             'lap_last_lap_time': float(stream['LapLastLapTime'] or 0.0),
@@ -243,10 +246,10 @@ class stream_handlers:
     @staticmethod
     def parse_all(stream):
         """Parse all telemetry data for current tick"""
-        # Get basic forces data once (includes throttle, brake, clutch)
+        # Get basic forces data
         basic_forces = stream_handlers.parse_basic_forces(stream)
         
-        # Get timing data once (combines previous timing and radar methods)
+        # Get timing data
         relative_timing = stream_handlers.parse_relative_timing(stream)
         
         return {
@@ -257,7 +260,7 @@ class stream_handlers:
             'drivetrain': stream_handlers.parse_drivetrain(stream),
             'dynamics': stream_handlers.parse_dynamics(stream),
             'pit_status': stream['OnPitRoad'],
-            'laps': None,
-            'predictives': None,
-            'stint_lap': None
+            'laps': None, #Initialize for init
+            'predictives': None, #Initialize for init
+            'stint_lap': None #Initialize for init
         }

@@ -42,6 +42,7 @@
                 </table>
             </div>
 
+            <!--Lap Time Wizard-->
             <div class="pit-wizard">
                 <h3>Lap Time Wizard</h3>
                 <div class="pit-info">
@@ -56,6 +57,7 @@
                 </div>
             </div>
 
+            <!--Pit Stop Wizard-->
             <div class="pit-wizard">
                 <h3>Pit Stop Wizard</h3>
                 <div class="pit-info">
@@ -152,7 +154,7 @@
                     </table>
                 </div>
 
-            <!-- Sectors Table -->
+            <!-- Mini Sectors Table -->
             <div class="sectors-module">
                 <h3>Mini-Sector Times</h3>
                 <table class="sectors-table">
@@ -185,7 +187,7 @@
                 </table>
                 <div>
                 
-                <!-- Corner Speeds -->
+                <!-- Corner Speeds (Not Implemented Yet) -->
                 <h3>Corner Speeds</h3>
                 <table class="sectors-table">
                     <thead>
@@ -244,7 +246,7 @@
                     </tbody>
                 </table>
             </div>
-
+            <!--Start and stop telem stream-->
             <div class="section">
                 <h3>Spotter Tools</h3>
                 <button class="action-button start-btn" id="start-stream-btn">Start Stream</button>
@@ -389,8 +391,8 @@
             if (data.is_valid) {
                 const balancePercent = data.balance_clamped / 2; // Scale ±100 to ±50%
                 balanceBar.style.left = `${50 + balancePercent}%`;
-                balanceBar.style.backgroundColor = data.color;  // Apply your gradient color
-                balanceBar.style.opacity = data.confidence;     // Fade based on confidence
+                balanceBar.style.backgroundColor = data.color;  // Apply gradient color
+                balanceBar.style.opacity = data.confidence;     // Fade based on confidence of estimation
                 confidenceText.textContent = data.confidence;
             } else {
                 // Invalid data - center and gray out
@@ -427,7 +429,7 @@
                 document.getElementById('position').textContent = position + suffix;
                 document.getElementById('class').textContent = data.relative_timing.car_idx_class ?? 'Class';
             }
-
+            //Update header and wizard(s) info
             if (data.lap_times) {
                 document.getElementById('lap').textContent = data.lap_times.lap || '--';
                 document.getElementById('current-lap-time').textContent = formatTime(data.lap_times.lap_current_lap_time);
@@ -471,17 +473,17 @@
 
                     }
                 }
-
+            //Update header stint lap info
             if (data.stint_lap){
                 document.getElementById('stint-lap').textContent = data.stint_lap;
             }
 
-            // Update footer info bar
+            // Update car info in center panel
             if (data.drivetrain) {
                 document.getElementById('gear').textContent = data.drivetrain.gear || '-';
                 document.getElementById('rpm').textContent = Math.round(data.drivetrain.rpm) || '----';
             }
-
+            //Update car info and trace
             if (data.basic_forces) {
                 const speed = Math.round(data.basic_forces.velo * 0.621371); // Convert km/h to mph
                 document.getElementById('speed').textContent = `${speed} MPH`;
@@ -495,11 +497,11 @@
                 // Update the line chart (showing input history)
                 updateLineChart(throttle, brake, clutch);
             }
-
+            //Update car info fuel
             if (data.consumables){
                 document.getElementById("fuel").textContent = `${data.consumables.fuel_level} L` || '-- L';
             }
-
+            //Update pitstop wizard
             if (data.predictives) {
                 document.getElementById("laps-fuel").textContent = data.predictives.Fuel_Laps_Remaining || '--';
                 document.getElementById("time-fuel").textContent = formatTime(data.predictives.Fuel_Time_Remaining) || '--';
@@ -509,7 +511,7 @@
                 document.getElementById("pit-exit-pos").textContent = data.predictives.Position_At_Pit_Exit || '--';
                 document.getElementById("pit-exit-pos-delta").textContent = formatTime(data.predictives.Delta_To_Next) || '--:--';
             }
-
+            //Update relative timing
             if (data.relative_timing) {
                 const me_pos = data.relative_timing.car_idx_position;
                 const gaps = data.relative_timing.gaps || [];
@@ -520,16 +522,16 @@
                 let displayPositions;
     
                 if (me_pos === 1) {
-                    // Leader: show positions 1, 2, 3, 4
+                    // Leader: show positions you, 2, 3, 4
                     displayPositions = [1, 2, 3, 4];
                 } else if (me_pos === 2) {
-                    // 2nd place: show positions 1, 2, 3, 4
+                    // 2nd place: show positions 1, you, 3, 4
                     displayPositions = [1, 2, 3, 4];
                 } else if (me_pos === classLength) {
-                    // Last place: show leader, P-2, P-1, P (you)
+                    // Last place: show leader, P-2, P-1, you
                     displayPositions = [1, me_pos - 2, me_pos - 1, me_pos];
                 } else {
-                    // Middle of pack: show leader, P-1, P (you), P+1
+                    // Middle of pack: show leader, P-1, you, P+1
                     displayPositions = [1, me_pos - 1, me_pos, me_pos + 1];
                 }
     
