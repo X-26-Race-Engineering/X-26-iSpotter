@@ -28,7 +28,7 @@ ir_instance = None
 connect_status = False
 stop_requested = False
 stop_times = []
-last_stop_time = 0.0
+curr_stop_time = 0.0
 
 
 class State:
@@ -161,7 +161,7 @@ def start_stream(interrupt_act=None):
         # Handle pit stop telemetry storage (outside lock to avoid issues)
         if frame['pit_status'] == 1:
 
-            if stored_telem['Fuel Usage'] != []:
+            if prev_frame and prev_frame['pit_status'] == 0:
                 print("Pit stop detected - resetting stint data")
                 stored_telem['Fuel Usage'] = []
                 stored_telem['Fuel Per Hour'] = []
@@ -172,10 +172,11 @@ def start_stream(interrupt_act=None):
                 stop_times.append(last_stop_time)
                 
                 #Resetting timer
-                last_stop_time = 0.0
+                curr_stop_time = 0.0
                 
             #Time pit stop
-            last_stop_time += (1/60)
+            curr_stop_time += (1/60)
+            frame['predictives']['Current_Pit_Time'] = curr_stop_time
         
         time.sleep(1/60)
 
@@ -226,7 +227,10 @@ def get_predictives():
         'Fuel_Time_Remaining': 0,
         'Predicted_Stops_Remaining': 0,
         'Average_Pace': 999.99,
-        'Predicted_Stop': 999.99
+        'Predicted_Stop': 999.99,
+        'Current_Pit_Time': 0.0,
+        'Average_Fuel_Usage': 999.99,
+        'Average_Fuel_Time': 999.99
     }
     
     if not frame or 'lap_times' not in frame:
@@ -241,6 +245,7 @@ def get_predictives():
     fuel_usage = np.diff(stored_telem["Fuel Usage"])
     if len(fuel_usage) > 0:
         avg_fu = abs(sum(fuel_usage) / len(fuel_usage))  # Average fuel usage per lap
+        stats['Average_Fuel_Usage'] = avg_fu
         
         if len(stored_telem["Fuel Usage"]) > 0 and avg_fu > 0:
             last_lap_fuel = stored_telem["Fuel Usage"][-1]
@@ -255,6 +260,7 @@ def get_predictives():
     fuel_hour_avg = 0
     if len(stored_telem['Fuel Per Hour']) > 0:
         fuel_hour_avg = sum(stored_telem['Fuel Per Hour']) / len(stored_telem['Fuel Per Hour'])
+        stats['Average_Fuel_Time'] = fuel_hour_avg
     
     # Calculate total time and average pace
     total_time = float(frame.get('lap_times', {}).get('lap_current_lap_time', 0.0) or 0.0) / 3600

@@ -68,8 +68,16 @@
                         <span style="font-size: 15px;" id="laps-fuel">--</span>
                     </div>
                     <div class="pit-info-row">
+                        <span style="font-size: 15px;">Avg. fuel usage per lap: </span>
+                        <span style="font-size: 15px;" id="avg-fuel-use">-- <span style="font-size: 15px;">L/Lap</span></span>
+                    </div>
+                    <div class="pit-info-row">
                         <span style="font-size: 15px;">Time left till next stop:</span> 
                         <span style="font-size: 15px;" id="time-fuel">--:--</span>
+                    </div>
+                    <div class="pit-info-row">
+                        <span style="font-size: 15px;">Avg. fuel use per hour </span>
+                        <span style="font-size: 15px;" id="avg-fuel-hour">-- <span style="font-size: 15px;">L/Hour</span></span>
                     </div>
                     <div class="pit-info-row">
                         <span style="font-size: 15px;">Est. pit stop time loss: </span>
@@ -82,6 +90,10 @@
                     <div class="pit-info-row">
                         <span style="font-size: 15px;">Est. delta to behind at pit exit: </span>
                         <span style="font-size: 15px;" id="pit-exit-pos-delta">--:--</span>
+                    </div>
+                    <div class="pit-info-row">
+                        <span style="font-size: 15px;">Current Pit Stop Time: </span>
+                        <span style="font-size: 15px;" id="curr-pit-stop">--:--</span>
                     </div>
                 </div>
             </div>
@@ -508,6 +520,9 @@
                 document.getElementById("pit-time-loss").textContent = formatTime(data.predictives.Predicted_Stop) || '--:--';
                 document.getElementById("pit-exit-pos").textContent = data.predictives.Position_At_Pit_Exit || '--';
                 document.getElementById("pit-exit-pos-delta").textContent = formatTime(data.predictives.Delta_To_Next) || '--:--';
+                document.getElementById("avg-fuel-use").textContent = data.predictives.Average_Fuel_Usage || '--';
+                document.getElementById("avg-fuel-hour").textContent = data.predictives.Average_Fuel_Hour || '--';
+                document.getElementyById("curr-pit-stop").textContent = formatTime(data.predictives.Current_Pit_Time) || '--:--';
             }
 
             if (data.relative_timing) {
