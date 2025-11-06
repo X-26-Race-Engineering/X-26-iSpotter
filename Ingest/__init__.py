@@ -76,7 +76,7 @@ def start_stream(interrupt_act=None):
     global stored_telem
     global stop_requested
     global stint_l
-    global last_stop_time
+    global curr_stop_time
     global stop_times
     
     stream_running = True
@@ -106,14 +106,15 @@ def start_stream(interrupt_act=None):
                 frame['lap_times'] = {}
                         
             # Calculate live delta EVERY frame for smooth updates 
-            if frame['lap_times']['lap_best_lap_time'] is not None and frame['relative_timing']['car_idx_lapdist_pct'] is not None:
+            if frame['lap_times']['lap_current_lap_time'] is not None and frame['relative_timing']['car_idx_lapdist_pct'] is not None:
                 #Get current lap time
-                current_lap_time = float(frame['lap_times']['lap_best_lap_time'] or 0.0)
+                current_lap_time = float(frame['lap_times']['lap_current_lap_time'] or 0.0)
                 
                 # Interpolate best lap time at current position
                 lap_pct = float(frame['relative_timing']['car_idx_lapdist_pct'] or 0.0)
-                estimated_best_time_at_position =  float(frame['lap_times']['lap_best_lap_time'] or 0.0) * lap_pct
-                estimated_leader_time_at_position = float(frame['relative_timing']['best_class_time'] or 0.0) *lap_pct
+
+                estimated_best_time_at_position =  float(frame['lap_times']['lap_best_lap_time'] or frame['lap_times']['lap_last_lap_time'] or 0.0) * lap_pct
+                estimated_leader_time_at_position = float(frame['relative_timing']['best_class_time'] or 0.0) * lap_pct
                 
                 # Delta = current time - where best lap was at this point
                 frame['lap_times']['live_delta'] = round(current_lap_time - estimated_best_time_at_position, 3)
@@ -129,15 +130,15 @@ def start_stream(interrupt_act=None):
                 best_lap_time = float(frame['lap_times'].get('lap_best_lap_time', 0.0) or 0.0)
                 lap_pct = float(frame['relative_timing'].get('car_idx_lapdist_pct', 0.0) or 0.0)
                 
-                NUM_SECTORS = 9  # Easy to change: 4, 9, 16, etc.
-                current_sector = int((lap_pct * 100) // (100 / NUM_SECTORS))  # 0-8 for 9 sectors
+                NUM_SECTORS = 10  # Easy to change: 4, 9, 16, etc.
+                current_sector = int((lap_pct * 100) // (100 / NUM_SECTORS))  # 0-9 for 10 sectors
                 
                 if best_lap_time > 0 and current_lap_time > 0:
                     # Estimate time at start of current sector
                     sector_start_time = best_lap_time * (current_sector / NUM_SECTORS)
                     # Time spent in current sector
                     frame['lap_times']['sector_time'] = current_lap_time - sector_start_time
-                    frame['lap_times']['current_sector'] = current_sector + 1  # Display as 1-9
+                    frame['lap_times']['current_sector'] = current_sector + 1  # Display as 1-10
                 else:
                     # No best lap yet - just show current lap time
                     frame['lap_times']['sector_time'] = current_lap_time
@@ -169,7 +170,7 @@ def start_stream(interrupt_act=None):
                 stint_l = 0
                 
                 #Adding last pit stop to pit stop time list
-                stop_times.append(last_stop_time)
+                stop_times.append(curr_stop_time)
                 
                 #Resetting timer
                 curr_stop_time = 0.0
