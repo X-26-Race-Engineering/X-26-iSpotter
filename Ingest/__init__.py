@@ -19,6 +19,7 @@ stored_telem = {
     'Lap Times': []
 }
 
+#Global vars
 frame = {}
 prev_frame = {}
 lock = threading.Lock()
@@ -110,7 +111,7 @@ def start_stream(interrupt_act=None):
                 #Get current lap time
                 current_lap_time = float(frame['lap_times']['lap_current_lap_time'] or 0.0)
                 
-                # Interpolate best lap time at current position
+                # Estimate lap time at current position
                 lap_pct = float(frame['relative_timing']['car_idx_lapdist_pct'] or 0.0)
 
                 estimated_best_time_at_position =  float(frame['lap_times']['lap_best_lap_time'] or frame['lap_times']['lap_last_lap_time'] or 0.0) * lap_pct
@@ -124,7 +125,7 @@ def start_stream(interrupt_act=None):
                 # No best lap reference yet
                 frame['lap_times']['live_delta'] = 0.0
             
-            # Calculate current sector time using estimation (no storage needed)
+            # Calculate current sector time using estimation
             if 'lap_times' in frame and 'relative_timing' in frame:
                 current_lap_time = float(frame['lap_times'].get('lap_current_lap_time', 0.0) or 0.0)
                 best_lap_time = float(frame['lap_times'].get('lap_best_lap_time', 0.0) or 0.0)
@@ -138,9 +139,9 @@ def start_stream(interrupt_act=None):
                     sector_start_time = best_lap_time * (current_sector / NUM_SECTORS)
                     # Time spent in current sector
                     frame['lap_times']['sector_time'] = current_lap_time - sector_start_time
-                    frame['lap_times']['current_sector'] = current_sector + 1  # Display as 1-10
+                    frame['lap_times']['current_sector'] = current_sector + 1  # Display + 1 from index
                 else:
-                    # No best lap yet - just show current lap time
+                    # No best lap yet, show current lap time
                     frame['lap_times']['sector_time'] = current_lap_time
                     frame['lap_times']['current_sector'] = current_sector + 1
             
@@ -159,7 +160,7 @@ def start_stream(interrupt_act=None):
                 
                 stint_l += 1
         
-        # Handle pit stop telemetry storage (outside lock to avoid issues)
+        # Handle pit stop telemetry storage
         if frame['pit_status'] == 1:
 
             if prev_frame and prev_frame['pit_status'] == 0:
@@ -223,6 +224,7 @@ def get_predictives():
     global frame
     global stop_times
     
+    #Create package
     stats = {
         'Fuel_Laps_Remaining': 0,
         'Fuel_Time_Remaining': 0,
@@ -237,6 +239,7 @@ def get_predictives():
     if not frame or 'lap_times' not in frame:
         return stats
     
+    #Initialize fields just in case no data is being returned from certain aspects of stream
     stats['Fuel_Laps_Remaining'] = -1
     stats['Fuel_Time_Remaining'] = -1
     fs_remaining = 9999
@@ -279,6 +282,7 @@ def get_predictives():
     
     stats['Predicted_Stops_Remaining'] = int(min(fs_remaining, ft_remaining))
     
+    #Calculate average (estimated) pit stop time
     if len(stop_times) > 0:
         stats['Predicted_Stop'] = pred_stop = float((sum(stop_times) / len(stop_times)) or 0.0)
         
