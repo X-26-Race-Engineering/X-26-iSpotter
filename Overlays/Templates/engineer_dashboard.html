@@ -70,8 +70,16 @@
                         <span style="font-size: 15px;" id="laps-fuel">--</span>
                     </div>
                     <div class="pit-info-row">
+                        <span style="font-size: 15px;">Avg. fuel usage per lap: </span>
+                        <span style="font-size: 15px;" id="avg-fuel-use">-- <span style="font-size: 15px;">L/Lap</span></span>
+                    </div>
+                    <div class="pit-info-row">
                         <span style="font-size: 15px;">Time left till next stop:</span> 
                         <span style="font-size: 15px;" id="time-fuel">--:--</span>
+                    </div>
+                    <div class="pit-info-row">
+                        <span style="font-size: 15px;">Avg. fuel use per hour </span>
+                        <span style="font-size: 15px;" id="avg-fuel-hour">-- <span style="font-size: 15px;">L/Hour</span></span>
                     </div>
                     <div class="pit-info-row">
                         <span style="font-size: 15px;">Est. pit stop time loss: </span>
@@ -84,6 +92,10 @@
                     <div class="pit-info-row">
                         <span style="font-size: 15px;">Est. delta to behind at pit exit: </span>
                         <span style="font-size: 15px;" id="pit-exit-pos-delta">--:--</span>
+                    </div>
+                    <div class="pit-info-row">
+                        <span style="font-size: 15px;">Current Pit Stop Time: </span>
+                        <span style="font-size: 15px;" id="curr-pit-stop">--:--</span>
                     </div>
                 </div>
             </div>
@@ -169,6 +181,7 @@
                             <th>MS7</th>
                             <th>MS8</th>
                             <th>MS9</th>
+                            <th>MS10</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -182,6 +195,7 @@
                             <td id="sector-7">--:--</td>
                             <td id="sector-8">--:--</td>
                             <td id="sector-9">--:--</td>
+                            <td id="sector-10">--:--</td>
                         </tr>
                     </tbody>
                 </table>
@@ -213,7 +227,7 @@
         <!-- Right Panel -->
         <div class="right-panel">
             <div class="section">
-                <h3><span id="class">Class</span> Relative Timing</h3>
+                <h3>Class Relative Timing</h3>
                 <table class="timing-table" id="relative-timing">
                     <thead>
                         <tr>
@@ -427,7 +441,6 @@
                 const position = data.relative_timing.car_idx_position || '--';
                 const suffix = position === 1 ? 'st' : position === 2 ? 'nd' : position === 3 ? 'rd' : 'th';
                 document.getElementById('position').textContent = position + suffix;
-                document.getElementById('class').textContent = data.relative_timing.car_idx_class ?? 'Class';
             }
             //Update header and wizard(s) info
             if (data.lap_times) {
@@ -510,6 +523,9 @@
                 document.getElementById("pit-time-loss").textContent = formatTime(data.predictives.Predicted_Stop) || '--:--';
                 document.getElementById("pit-exit-pos").textContent = data.predictives.Position_At_Pit_Exit || '--';
                 document.getElementById("pit-exit-pos-delta").textContent = formatTime(data.predictives.Delta_To_Next) || '--:--';
+                document.getElementById("avg-fuel-use").textContent = data.predictives.Average_Fuel_Usage || '--';
+                document.getElementById("avg-fuel-hour").textContent = data.predictives.Average_Fuel_Hour || '--';
+                document.getElementyById("curr-pit-stop").textContent = formatTime(data.predictives.Current_Pit_Time) || '--:--';
             }
             //Update relative timing
             if (data.relative_timing) {

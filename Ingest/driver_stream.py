@@ -208,13 +208,13 @@ class stream_handlers:
     def parse_lap_times(stream):
         """Parse lap timing data"""
         return {
-            'lap_best_lap_time': float(stream['LapBestLapTime'] or 0.0),
-            'lap_last_lap_time': float(stream['LapLastLapTime'] or 0.0),
+            'lap_best_lap_time': float(stream['CarIdxBestLapTime'][me_idx] or 0.0),
+            'lap_last_lap_time': float(stream['CarIdxLastLapTime'][me_idx] or 0.0),
             'lap_current_lap_time': float(stream['LapCurrentLapTime'] or 0.0),
-            'lap_best_lap': int(stream['LapBestLap'] or 1),
+            'lap_best_lap': int(stream['CarIdxBestLapNum'][me_idx] or 1),
             'live_delta': 0.0,
             'leader_delta': 0.0,
-            'lap': int(stream['Lap'] or 0),
+            'lap': int(stream['CarIdxLap'][me_idx] or 0),
             'laps_remaining': int(stream['SessionLapsRemainEx'] or 0),
             'time_remaining': float(stream['SessionTimeRemain'] or 0.0),
             'session_time_total': float(stream['SessionTimeTotal'] or 0.0)
@@ -226,13 +226,7 @@ class stream_handlers:
         return {
             'fuel_level': round(float(stream['FuelLevel'] or 0.0), 1),
             'fuel_level_pct': float(stream['FuelLevelPct'] or 0.0),
-            'fuel_use_per_hour': float(stream['FuelUsePerHour'] or 0.0),
-            'lf_wear': (float(stream['LFwearL'] or 0.0), float(stream['LFwearM'] or 0.0), float(stream['LFwearR'] or 0.0)),
-            'rf_wear': (float(stream['RFwearL'] or 0.0), float(stream['RFwearM'] or 0.0), float(stream['RFwearR'] or 0.0)),
-            'lr_wear': (float(stream['LRwearL'] or 0.0), float(stream['LRwearM'] or 0.0), float(stream['LRwearR'] or 0.0)),
-            'rr_wear': (float(stream['RRwearL'] or 0.0), float(stream['RRwearM'] or 0.0), float(stream['RRwearR'] or 0.0)),
-            'tire_sets_used': stream['TireSetsUsed'],
-            'tire_sets_available': stream['TireSetsAvailable']
+            'fuel_use_per_hour': float(stream['FuelUsePerHour'] or 0.0)
         }
     
     @staticmethod

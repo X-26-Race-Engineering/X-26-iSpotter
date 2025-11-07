@@ -29,7 +29,7 @@ ir_instance = None
 connect_status = False
 stop_requested = False
 stop_times = []
-last_stop_time = 0.0
+curr_stop_time = 0.0
 
 
 class State:
@@ -77,7 +77,7 @@ def start_stream(interrupt_act=None):
     global stored_telem
     global stop_requested
     global stint_l
-    global last_stop_time
+    global curr_stop_time
     global stop_times
     
     stream_running = True
@@ -106,15 +106,16 @@ def start_stream(interrupt_act=None):
             if 'lap_times' not in frame:
                 frame['lap_times'] = {}
                         
-            # Calculate live delta
-            if frame['lap_times']['lap_best_lap_time'] is not None and frame['relative_timing']['car_idx_lapdist_pct'] is not None:
+            # Calculate live delta EVERY frame for smooth updates 
+            if frame['lap_times']['lap_current_lap_time'] is not None and frame['relative_timing']['car_idx_lapdist_pct'] is not None:
                 #Get current lap time
-                current_lap_time = float(frame['lap_times']['lap_best_lap_time'] or 0.0)
+                current_lap_time = float(frame['lap_times']['lap_current_lap_time'] or 0.0)
                 
                 # Estimate lap time at current position
                 lap_pct = float(frame['relative_timing']['car_idx_lapdist_pct'] or 0.0)
-                estimated_best_time_at_position =  float(frame['lap_times']['lap_best_lap_time'] or 0.0) * lap_pct
-                estimated_leader_time_at_position = float(frame['relative_timing']['best_class_time'] or 0.0) *lap_pct
+
+                estimated_best_time_at_position =  float(frame['lap_times']['lap_best_lap_time'] or frame['lap_times']['lap_last_lap_time'] or 0.0) * lap_pct
+                estimated_leader_time_at_position = float(frame['relative_timing']['best_class_time'] or 0.0) * lap_pct
                 
                 # Delta = current time - where best lap was at this point
                 frame['lap_times']['live_delta'] = round(current_lap_time - estimated_best_time_at_position, 3)
@@ -130,8 +131,8 @@ def start_stream(interrupt_act=None):
                 best_lap_time = float(frame['lap_times'].get('lap_best_lap_time', 0.0) or 0.0)
                 lap_pct = float(frame['relative_timing'].get('car_idx_lapdist_pct', 0.0) or 0.0)
                 
-                NUM_SECTORS = 9 #Arbitrary mini sector number
-                current_sector = int((lap_pct * 100) // (100 / NUM_SECTORS))  # 0-8 for 9 sectors
+                NUM_SECTORS = 10  # Easy to change: 4, 9, 16, etc.
+                current_sector = int((lap_pct * 100) // (100 / NUM_SECTORS))  # 0-9 for 10 sectors
                 
                 if best_lap_time > 0 and current_lap_time > 0:
                     # Estimate time at start of current sector
@@ -162,7 +163,7 @@ def start_stream(interrupt_act=None):
         # Handle pit stop telemetry storage
         if frame['pit_status'] == 1:
 
-            if stored_telem['Fuel Usage'] != []:
+            if prev_frame and prev_frame['pit_status'] == 0:
                 print("Pit stop detected - resetting stint data")
                 stored_telem['Fuel Usage'] = []
                 stored_telem['Fuel Per Hour'] = []
@@ -170,13 +171,14 @@ def start_stream(interrupt_act=None):
                 stint_l = 0
                 
                 #Adding last pit stop to pit stop time list
-                stop_times.append(last_stop_time)
+                stop_times.append(curr_stop_time)
                 
                 #Resetting timer
-                last_stop_time = 0.0
+                curr_stop_time = 0.0
                 
             #Time pit stop
-            last_stop_time += (1/60)
+            curr_stop_time += (1/60)
+            frame['predictives']['Current_Pit_Time'] = curr_stop_time
         
         time.sleep(1/60)
 
@@ -228,7 +230,10 @@ def get_predictives():
         'Fuel_Time_Remaining': 0,
         'Predicted_Stops_Remaining': 0,
         'Average_Pace': 999.99,
-        'Predicted_Stop': 999.99
+        'Predicted_Stop': 999.99,
+        'Current_Pit_Time': 0.0,
+        'Average_Fuel_Usage': 999.99,
+        'Average_Fuel_Time': 999.99
     }
     
     if not frame or 'lap_times' not in frame:
@@ -244,6 +249,7 @@ def get_predictives():
     fuel_usage = np.diff(stored_telem["Fuel Usage"])
     if len(fuel_usage) > 0:
         avg_fu = abs(sum(fuel_usage) / len(fuel_usage))  # Average fuel usage per lap
+        stats['Average_Fuel_Usage'] = avg_fu
         
         if len(stored_telem["Fuel Usage"]) > 0 and avg_fu > 0:
             last_lap_fuel = stored_telem["Fuel Usage"][-1]
@@ -258,6 +264,7 @@ def get_predictives():
     fuel_hour_avg = 0
     if len(stored_telem['Fuel Per Hour']) > 0:
         fuel_hour_avg = sum(stored_telem['Fuel Per Hour']) / len(stored_telem['Fuel Per Hour'])
+        stats['Average_Fuel_Time'] = fuel_hour_avg
     
     # Calculate total time and average pace
     total_time = float(frame.get('lap_times', {}).get('lap_current_lap_time', 0.0) or 0.0) / 3600
