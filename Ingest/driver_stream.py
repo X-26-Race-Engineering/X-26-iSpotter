@@ -207,6 +207,7 @@ class stream_handlers:
     @staticmethod  
     def parse_lap_times(stream):
         """Parse lap timing data"""
+        me_idx = int(stream['PlayerCarIdx'] or 1)
         return {
             'lap_best_lap_time': float(stream['CarIdxBestLapTime'][me_idx] or 0.0),
             'lap_last_lap_time': float(stream['CarIdxLastLapTime'][me_idx] or 0.0),
