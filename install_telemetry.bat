@@ -11,55 +11,8 @@ REM Get the directory where this script is located
 set SCRIPT_DIR=%~dp0
 cd /d "%SCRIPT_DIR%"
 
-REM Check if Python is installed
-python --version >nul 2>&1
-if errorlevel 1 (
-    echo Python is not installed. Installing Python now...
-    echo.
-    
-    REM Download Python installer
-    echo [1/5] Downloading Python 3.11.9...
-    set "PYTHON_INSTALLER=%TEMP%\python-3.11.9-amd64.exe"
-    
-    REM Using PowerShell to download Python
-    powershell -Command "[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; Invoke-WebRequest -Uri 'https://www.python.org/ftp/python/3.11.9/python-3.11.9-amd64.exe' -OutFile '%PYTHON_INSTALLER%'"
-    
-    if not exist "%PYTHON_INSTALLER%" (
-        echo ERROR: Failed to download Python!
-        echo Please manually install Python 3.8+ from https://www.python.org/
-        echo Make sure to check "Add Python to PATH" during installation!
-        pause
-        exit /b 1
-    )
-    
-    echo.
-    echo [2/5] Installing Python...
-    echo.
-    echo The Python installer will open shortly.
-    echo Please ensure that you:
-    echo   1. Check "Add Python to PATH"
-    echo   2. Click "Install Now"
-    echo   3. Wait for installation to complete
-    echo.
-    pause
-
-    "%PYTHON_INSTALLER%" /passive InstallAllUsers=0 PrependPath=1 Include_pip=1 Include_test=0
-
-    if errorlevel 1 (
-        echo ERROR: Python installation failed.
-        echo Please install manually from https://www.python.org/downloads/
-        pause
-        exit /b 1
-    )
-
-) else (
-    echo [1/5] Checking Python installation...
-    python --version
-    echo.
-)
-
 REM Check if pip is installed
-echo [2/5] Checking pip installation...
+echo [1/4] Checking pip installation...
 python -m pip --version >nul 2>&1
 if errorlevel 1 (
     echo pip is not installed. Installing pip...
@@ -91,7 +44,7 @@ if errorlevel 1 (
 python -m pip --version
 echo.
 
-echo [3/5] Installing required packages...
+echo [2/4] Installing required packages...
 echo This may take a few minutes...
 echo.
 
@@ -108,7 +61,7 @@ echo All packages installed successfully!
 echo.
 
 :create_shortcuts
-echo [4/5] Creating desktop shortcut...
+echo [3/4] Creating desktop shortcut...
 
 REM Create VBS script to make shortcut
 set VBS_FILE="%TEMP%\create_shortcut.vbs"
@@ -132,7 +85,7 @@ cscript //nologo %VBS_FILE%
 if exist %VBS_FILE% del %VBS_FILE%
 
 echo.
-echo [5/5] Creating launcher script...
+echo [4/4] Creating launcher script...
 
 REM Create the run script with better error handling
 (
