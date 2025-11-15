@@ -64,6 +64,8 @@ This project requires the following dependencies:
 
 ### Installation
 
+You will need Python 3.8+ for the file, so before running the install script download a version from  [here](https://www.python.org/downloads/release/python-3129/)
+
 Build X-26-iSpotter from the source and install dependencies:
 
 1. **Clone the repository:**
@@ -85,8 +87,6 @@ Build X-26-iSpotter from the source and install dependencies:
 ```sh
 ❯ .\install_telemetry.bat
 ```
-
-**If the file does not recognize python AND fails to install the proper version install [here](https://www.python.org/downloads/release/python-3129/)**
 
 ### Usage
 
