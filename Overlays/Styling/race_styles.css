@@ -33,6 +33,33 @@ body {
     text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
 }
 
+/* Main Menu Button */
+.main-menu-btn {
+    position: absolute;
+    right: 20px;
+    padding: 12px 24px;
+    background: linear-gradient(135deg, #8B0000 0%, #DC143C 100%);
+    color: white;
+    text-decoration: none;
+    border-radius: 8px;
+    font-size: 18px;
+    font-weight: bold;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+}
+
+.main-menu-btn:hover {
+    background: linear-gradient(135deg, #A00000 0%, #FF1744 100%);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.6);
+}
+
+.main-menu-btn:active {
+    transform: translateY(0);
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.4);
+}
+
 /* Footer Section */
 .footer {
     grid-column: 1 / 4;

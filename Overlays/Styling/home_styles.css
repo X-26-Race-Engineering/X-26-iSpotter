@@ -1,0 +1,208 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Arial', sans-serif;
+    overflow: hidden;
+    height: 100vh;
+    width: 100vw;
+}
+
+.home-container {
+    height: 100vh;
+    width: 100vw;
+    background: linear-gradient(135deg, #1e3a5f 0%, #6b3d5e 50%, #d4857d 100%);
+    display: flex;
+    flex-direction: column;
+    position: relative;
+}
+
+/* Logo in top-left corner */
+.logo-container {
+    position: absolute;
+    top: 20px;
+    left: 20px;
+    z-index: 10;
+}
+
+.logo {
+    height: 80px;
+    width: auto;
+    filter: drop-shadow(2px 2px 4px rgba(0, 0, 0, 0.5));
+}
+
+/* Main content centered */
+.main-content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    padding: 20px;
+}
+
+.main-title {
+    font-size: 72px;
+    font-style: italic;
+    font-weight: bold;
+    color: white;
+    text-shadow: 3px 3px 6px rgba(0, 0, 0, 0.7);
+    margin-bottom: 80px;
+    letter-spacing: 2px;
+    font-style: italic;
+}
+
+/* Button container */
+.button-container {
+    display: flex;
+    flex-direction: column;
+    gap: 30px;
+    width: 100%;
+    max-width: 400px;
+}
+
+/* Navigation buttons */
+.nav-button {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 30px 60px;
+    font-size: 36px;
+    font-weight: bold;
+    color: white;
+    text-decoration: none;
+    border-radius: 12px;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4);
+    cursor: pointer;
+    border: none;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+}
+
+.nav-button:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.6);
+}
+
+.nav-button:active {
+    transform: translateY(-2px);
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.4);
+}
+
+/* Individual button colors */
+.race-button {
+    background: linear-gradient(135deg, #8B0000 0%, #DC143C 100%);
+}
+
+.race-button:hover {
+    background: linear-gradient(135deg, #A00000 0%, #FF1744 100%);
+}
+
+.spot-button {
+    background: linear-gradient(135deg, #8B0000 0%, #DC143C 100%);
+}
+
+.spot-button:hover {
+    background: linear-gradient(135deg, #A00000 0%, #FF1744 100%);
+}
+
+.analyze-button {
+    background: linear-gradient(135deg, #8B0000 0%, #DC143C 100%);
+}
+
+.analyze-button:hover {
+    background: linear-gradient(135deg, #A00000 0%, #FF1744 100%);
+}
+
+/* Footer */
+.footer {
+    padding: 20px;
+    text-align: center;
+    color: rgba(0, 0, 0, 0.8);
+    font-size: 14px;
+    font-weight: 500;
+    background: transparent;
+}
+
+.footer p {
+    margin: 0;
+}
+
+/* Responsive design for tablets */
+@media (max-width: 1024px) {
+    .main-title {
+        font-size: 56px;
+        margin-bottom: 60px;
+    }
+
+    .nav-button {
+        font-size: 30px;
+        padding: 25px 50px;
+    }
+
+    .logo {
+        height: 60px;
+    }
+}
+
+/* Responsive design for mobile */
+@media (max-width: 768px) {
+    .logo-container {
+        top: 15px;
+        left: 15px;
+    }
+
+    .logo {
+        height: 50px;
+    }
+
+    .main-title {
+        font-size: 42px;
+        margin-bottom: 50px;
+        text-align: center;
+    }
+
+    .button-container {
+        max-width: 300px;
+        gap: 20px;
+    }
+
+    .nav-button {
+        font-size: 24px;
+        padding: 20px 40px;
+    }
+
+    .footer {
+        font-size: 12px;
+        padding: 15px;
+    }
+}
+
+/* Extra small screens */
+@media (max-width: 480px) {
+    .main-title {
+        font-size: 32px;
+        margin-bottom: 40px;
+    }
+
+    .button-container {
+        max-width: 250px;
+        gap: 15px;
+    }
+
+    .nav-button {
+        font-size: 20px;
+        padding: 18px 35px;
+    }
+
+    .logo {
+        height: 40px;
+    }
+
+    .footer {
+        font-size: 11px;
+    }
+}
