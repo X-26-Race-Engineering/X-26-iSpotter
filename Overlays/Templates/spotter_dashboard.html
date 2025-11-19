@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>X-26 iSpotter - Spotter Dashboard</title>
+    <link rel="stylesheet" href="/Styling/race_styles.css">
+    <script src="https://cdn.socket.io/4.5.4/socket.io.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <div class="dashboard">
+        <!-- Header -->
+        <div class="header">
+            <span>POS: <span id="position">--</span></span>
+            <span style="margin: 0 40px;">LAP: <span id="lap">--</span></span>
+            <span>TIME: <span id="current-lap-time">99:99.999</span></span>
+            <span style="margin: 0 40px;">STINT LAP: <span id="stint-lap">--</span></span>
+            <a href="/" class="main-menu-btn">Main Menu</a>
+        </div>
+
+        <!-- Left Panel -->
+        <div class="left-panel">
+
+            <!-- Best Lap-->
+            <div class="pit-wizard">
+                <h3>Best Lap</h3>
+                <table class="timing-table" id="best-ses-lap">
+                    <thead>
+                        <tr>
+                            <th>Lap</th>
+                            <th>Time</th>
+                            <th>Live Delta</th>
+                        </tr>
+                    </thead>
+                    <tbody id="bestlap-body">
+                        <tr>
+                            <td id="best-lap">--</td>
+                            <td id="best-time">--:--</td>
+                            <td id="delta-to-best">--</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!--Lap Time Wizard-->
+            <div class="pit-wizard">
+                <h3>Lap Time Wizard</h3>
+                <div class="pit-info">
+                    <div class="pit-info-row">
+                        <span style="font-size: 15px;">Average Pace:</span>
+                        <span id="avg-pace" style="font-size: 15px;">--:--</span>
+                    </div>
+                    <div class="pit-info-row">
+                        <span style="font-size: 15px;">Predicted Next Lap:</span>
+                        <span id="predicted-lap" style="font-size: 15px;">--:--</span>
+                    </div>
+                </div>
+            </div>
+
+            <!--Pit Stop Wizard-->
+            <div class="pit-wizard">
+                <h3>Pit Stop Wizard</h3>
+                <div class="pit-info">
+                    <div class="pit-info-row">
+                        <span style="font-size: 15px;">Est. pit stop time loss: </span>
+                        <span style="font-size: 15px;" id="pit-time-loss">--:--</span>
+                    </div>
+                    <div class="pit-info-row">
+                        <span style="font-size: 15px;">Est. position at pit exit: </span>
+                        <span style="font-size: 15px;" id="pit-exit-pos">--</span>
+                    </div>
+                    <div class="pit-info-row">
+                        <span style="font-size: 15px;">Est. delta to behind at pit exit: </span>
+                        <span style="font-size: 15px;" id="pit-exit-pos-delta">--:--</span>
+                    </div>
+                    <div class="pit-info-row">
+                        <span style="font-size: 15px;">Current Pit Stop Time: </span>
+                        <span style="font-size: 15px;" id="curr-pit-stop">--:--</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Center Panel -->
+        <div class="center-panel">
+
+            <!-- Steering Balance Module -->
+            <div class="steering-balance-module">
+                <div class="steering-meter-wrapper">
+                    <div class="steering-meter-background">
+                        <div class="steering-center-line"></div>
+                        <div class="steering-meter-bar" id="steeringBar"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="sectors-module">
+                    <!-- Car Info-->
+                    <table class="sectors-table">
+                        <thead>
+                            <tr>
+                                <th>Gear</th>
+                                <th>RPM</th>
+                                <th>Speed</th>
+                                <th>Fuel</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td id="gear">-</td>
+                                <td><span id="rpm">----</span> RPM</td>
+                                <td id="speed">--- MPH</td>
+                                <td id="fuel">-- L</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+            <!-- Mini Sectors Table -->
+            <div class="sectors-module">
+                <h3>Mini-Sector Times</h3>
+                <table class="sectors-table">
+                    <thead>
+                        <tr>
+                            <th>MS1</th>
+                            <th>MS2</th>
+                            <th>MS3</th>
+                            <th>MS4</th>
+                            <th>MS5</th>
+                            <th>MS6</th>
+                            <th>MS7</th>
+                            <th>MS8</th>
+                            <th>MS9</th>
+                            <th>MS10</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td id="sector-1">--:--</td>
+                            <td id="sector-2">--:--</td>
+                            <td id="sector-3">--:--</td>
+                            <td id="sector-4">--:--</td>
+                            <td id="sector-5">--:--</td>
+                            <td id="sector-6">--:--</td>
+                            <td id="sector-7">--:--</td>
+                            <td id="sector-8">--:--</td>
+                            <td id="sector-9">--:--</td>
+                            <td id="sector-10">--:--</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div> <!-- FIXED: Added missing closing tag for center-panel -->
+
+        <!-- Right Panel -->
+        <div class="right-panel">
+            <div class="section">
+                <h3>Class Relative Timing</h3>
+                <table class="timing-table" id="relative-timing">
+                    <thead>
+                        <tr>
+                            <th>Position</th>
+                            <th>Gap</th>
+                            <th>Last Lap Delta</th>
+                        </tr>
+                    </thead>
+                    <tbody id="timing-body">
+                        <tr>
+                            <td id="timing-1-pos">1</td>
+                            <td id="timing-1-gap">--</td>
+                            <td id="timing-1-delta">--</td>
+                        </tr>
+                        <tr>
+                            <td id="timing-2-pos">--</td>
+                            <td id="timing-2-gap">--</td>
+                            <td id="timing-2-delta">--</td>
+                        </tr>
+                        <tr>
+                            <td id="timing-3-pos">--</td>
+                            <td id="timing-3-gap">--</td>
+                            <td id="timing-3-delta">--</td>
+                        </tr>
+                        <tr>
+                            <td id="timing-4-pos">--</td>
+                            <td id="timing-4-gap">--</td>
+                            <td id="timing-4-delta">--</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <!--Start and stop telem stream-->
+            <div class="section">
+                <h3>Spotter Tools</h3>
+                <button class="action-button start-btn" id="start-stream-btn">Start Stream</button>
+                <button class="action-button stop-btn" id="stop-stream-btn">Stop Stream</button>
+                <div id="stream-status" class="stream-status">
+                    <div>Stream: <span id="status-text">Inactive</span></div>
+                    <div>iRacing: <span id="iracing-status">Disabled</span></div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</body>
+</html>
