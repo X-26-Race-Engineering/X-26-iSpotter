@@ -31,6 +31,34 @@ body {
     font-size: 36px;
     font-weight: bold;
     text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+    position: relative;
+}
+
+/* Main Menu Button */
+.main-menu-btn {
+    position: absolute;
+    right: 20px;
+    padding: 12px 24px;
+    background: linear-gradient(135deg, #8B0000 0%, #DC143C 100%);
+    color: white;
+    text-decoration: none;
+    border-radius: 8px;
+    font-size: 18px;
+    font-weight: bold;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+}
+
+.main-menu-btn:hover {
+    background: linear-gradient(135deg, #A00000 0%, #FF1744 100%);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.6);
+}
+
+.main-menu-btn:active {
+    transform: translateY(0);
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.4);
 }
 
 /* Footer Section */
@@ -63,6 +91,8 @@ body {
     flex-direction: column;
     gap: 4px;
     padding: 4px;
+    overflow-y: auto;
+    overflow-x: hidden;
 }
 
 /* Telemetry Module */
@@ -249,6 +279,21 @@ body {
     margin-bottom: 6px;
     font-size: 16px;
     color: #a0a0a0;
+}
+
+/* Chart Wrapper for Delta and Lap Time Charts */
+.chart-wrapper {
+    background: #0a0a0a;
+    border: 2px solid #333;
+    border-radius: 4px;
+    padding: 10px;
+    height: 200px;
+    margin-top: 8px;
+}
+
+.chart-wrapper canvas {
+    width: 100% !important;
+    height: 100% !important;
 }
 
 .sectors-table {
@@ -661,6 +706,12 @@ body {
         margin: 0 10px !important;
     }
     
+    .main-menu-btn {
+        font-size: 14px;
+        padding: 10px 20px;
+        right: 15px;
+    }
+    
     .left-panel {
         grid-column: 1;
         grid-row: 2;
@@ -767,6 +818,22 @@ body {
     
     .header span {
         margin: 0 3px !important;
+    }
+
+    .main-menu-btn {
+        font-size: 12px;
+        padding: 8px 16px;
+        right: 10px;
+        top: 50%;
+        transform: translateY(-50%);
+    }
+
+    .main-menu-btn:hover {
+        transform: translateY(-50%) translateY(-2px);
+    }
+
+    .main-menu-btn:active {
+        transform: translateY(-50%);
     }
 
     .telemetry-module {

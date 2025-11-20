@@ -30,6 +30,8 @@ connect_status = False
 stop_requested = False
 stop_times = []
 curr_stop_time = 0.0
+stored_session_lap = np.inf
+stored_best_lap = np.inf
 
 
 class State:
@@ -79,6 +81,8 @@ def start_stream(interrupt_act=None):
     global stint_l
     global curr_stop_time
     global stop_times
+    global stored_session_lap
+    global stored_best_lap
     
     stream_running = True
     ir_instance = irsdk.IRSDK()
@@ -144,6 +148,26 @@ def start_stream(interrupt_act=None):
                     # No best lap yet, show current lap time
                     frame['lap_times']['sector_time'] = current_lap_time
                     frame['lap_times']['current_sector'] = current_sector + 1
+                  
+                #Handle session time changes for line chart  
+                if frame['relative_timing']['best_session_time'] and float(frame['relative_timing']['best_session_time'] or np.inf) < stored_session_lap:
+                    stored_session_lap = frame['relative_timing']['best_session_time']
+                    frame['lap_chart'] = {
+                        'best_time': stored_best_lap,
+                        'session_lap': stored_session_lap,
+                        'lap': ''
+                    }
+                    
+                elif frame['lap_times']['lap_best_lap_time'] and float(frame['lap_times']['lap_best_lap_time'] or np.inf) < stored_session_lap:
+                    stored_session_lap = frame['lap_times']['lap_best_lap_time']
+                    frame['lap_chart'] = {
+                        'best_time': stored_best_lap,
+                        'session_lap': stored_session_lap,
+                        'lap': ''
+                    }
+                    
+                else:
+                    frame['lap_chart'] = None
             
             # Detect lap completion - store lap data and reset tracking
             if (prev_frame and 'lap_times' in prev_frame and 
@@ -159,6 +183,12 @@ def start_stream(interrupt_act=None):
                     stored_telem['Fuel Per Hour'].append(frame['consumables']['fuel_use_per_hour'])
                 
                 stint_l += 1
+                
+                frame['lap_chart'] = {
+                        'best_time': stored_best_lap,
+                        'session_lap': stored_session_lap,
+                        'lap': int(prev_frame['lap_times']['lap'] or 0) 
+                    }
         
         # Handle pit stop telemetry storage
         if frame['pit_status'] == 1:

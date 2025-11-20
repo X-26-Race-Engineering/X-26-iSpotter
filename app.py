@@ -61,20 +61,35 @@ def telemetry_broadcaster():
 
 @app.route("/")
 def index():
-    """Main dashboard page"""
-    return render_template("engineer_dashboard.html")
+    """Home page"""
+    return render_template("home_screen.html")
 
-@app.route("/styles/<path:filename>")
+@app.route("/engineer_dashboard.html")
+def engineer_dashboard():
+    """Engineer dashboard page"""
+    return render_template("race_dashboard.html")
+
+@app.route("/spotter_dashboard.html")
+def spotter_dashboard():
+    """Spotter dashboard page (placeholder)"""
+    return render_template("spotter_dashboard.html")
+
+@app.route("/platform_analysis.html")
+def platform_analysis():
+    """Platform analysis page (placeholder)"""
+    return render_template("platform_analysis.html")
+
+@app.route("/Styling/<path:filename>")
 def serve_styles(filename):
     """Serve CSS files"""
     styles_path = os.path.join('Overlays', 'Styles')
     return send_from_directory(styles_path, filename)
 
-@app.route("/scripts/<path:filename>")
-def serve_scripts(filename):
-    """Serve JavaScript files"""
-    scripts_path = os.path.join('Overlays', 'Scripts')
-    return send_from_directory(scripts_path, filename)
+@app.route("/Images/<path:filename>")
+def serve_images(filename):
+    """Serve image files"""
+    images_path = os.path.join('Overlays', 'Images')
+    return send_from_directory(images_path, filename)
 
 @app.route("/health")
 def health_check():
