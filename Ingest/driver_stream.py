@@ -163,6 +163,9 @@ class stream_handlers:
         gaps = [0.0]
         deltas = [0.0]
         
+        #Initialize best times
+        best_time = np.inf
+        
         #Iteratre through 100 idxs and check for gaps and deltas
         while ahead_idx >= 1 or behind_idx <= 100:
             if ahead_idx > 0 and (int(stream['CarIdxClassPosition'][ahead_idx] or 100) < me_pos) and stream['CarIdxClass'][ahead_idx] == me_class:
@@ -174,6 +177,9 @@ class stream_handlers:
                 float(stream['CarIdxLastLapTime'][ahead_idx] or 0.0)
                     - float(stream['CarIdxLastLapTime'][me_idx] or 0.0), 3)
                 deltas.insert(0, delta)
+                
+                if stream['CarIdxBestLapTime'][ahead_idx] and float(stream['CarIdxBestLapTime'][ahead_idx] or np.inf) < best_time:
+                    best_time = float(stream['CarIdxBestLapTime'][ahead_idx])
                 
                 if stream['CarIdxClassPosition'][ahead_idx] == 1:
                     leader_idx = ahead_idx
@@ -188,6 +194,9 @@ class stream_handlers:
                     float(stream['CarIdxLastLapTime'][behind_idx] or 0.0)
                     - float(stream['CarIdxLastLapTime'][me_idx] or 0.0), 3)
                     deltas.append(delta)
+                    
+                    if stream['CarIdxBestLapTime'][behind_idx] and float(stream['CarIdxBestLapTime'][behind_idx] or np.inf) < best_time:
+                        best_time = float(stream['CarIdxBestLapTime'][behind_idx])
             except:
                 pass
             
@@ -198,6 +207,7 @@ class stream_handlers:
             'deltas': deltas,
             'gaps': gaps,
             'car_idx_lapdist_pct': float(stream['CarIdxLapDistPct'][me_idx] or 0.0),
+            'best_session_time': min(float(stream['CarIdxBestLapTime'][me_idx] or np.inf), float(best_time)),
             'car_idx_position': me_pos,
             'car_idx_class': me_class,
             'best_class_time': float(stream['CarIdxBestLapTime'][leader_idx] or 0.0)
@@ -209,7 +219,7 @@ class stream_handlers:
         """Parse lap timing data"""
         me_idx = int(stream['PlayerCarIdx'] or 1)
         return {
-            'lap_best_lap_time': float(stream['CarIdxBestLapTime'][me_idx] or 0.0),
+            'lap_best_lap_time': float(stream['CarIdxBestLapTime'][me_idx] or np.inf),
             'lap_last_lap_time': float(stream['CarIdxLastLapTime'][me_idx] or 0.0),
             'lap_current_lap_time': float(stream['LapCurrentLapTime'] or 0.0),
             'lap_best_lap': int(stream['CarIdxBestLapNum'][me_idx] or 1),
@@ -257,5 +267,6 @@ class stream_handlers:
             'pit_status': stream['OnPitRoad'],
             'laps': None, #Initialize for init
             'predictives': None, #Initialize for init
-            'stint_lap': None #Initialize for init
+            'stint_lap': None, #Initialize for init
+            'lap_chart': None, #Initialize for init
         }
