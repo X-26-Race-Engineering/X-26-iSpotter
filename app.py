@@ -71,13 +71,18 @@ def engineer_dashboard():
 
 @app.route("/spotter_dashboard.html")
 def spotter_dashboard():
-    """Spotter dashboard page (placeholder)"""
+    """Spotter dashboard page"""
     return render_template("spotter_dashboard.html")
 
 @app.route("/platform_analysis.html")
 def platform_analysis():
     """Platform analysis page (placeholder)"""
     return render_template("platform_analysis.html")
+
+@app.route("/strategy_dashboard.html")
+def strategy_dashboard():
+    """Strategy dashboard page (placeholder)"""
+    return render_template("strategy_dashboard.html")
 
 @app.route("/Styling/<path:filename>")
 def serve_styles(filename):

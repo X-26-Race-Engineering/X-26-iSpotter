@@ -12,6 +12,10 @@
     <div class="dashboard">
         <!-- Header -->
         <div class="header">
+            <div class="header-stream-controls">
+                <button class="action-button start-btn" id="start-stream-btn">Start Stream</button>
+                <button class="action-button stop-btn" id="stop-stream-btn">Stop Stream</button>
+            </div>
             <span>POS: <span id="position">--</span></span>
             <span style="margin: 0 40px;">LAP: <span id="lap">--</span></span>
             <span>TIME: <span id="current-lap-time">99:99.999</span></span>
@@ -21,27 +25,6 @@
 
         <!-- Left Panel -->
         <div class="left-panel">
-
-            <!-- Best Lap-->
-            <div class="pit-wizard">
-                <h3>Best Lap</h3>
-                <table class="timing-table" id="best-ses-lap">
-                    <thead>
-                        <tr>
-                            <th>Lap</th>
-                            <th>Time</th>
-                            <th>Live Delta</th>
-                        </tr>
-                    </thead>
-                    <tbody id="bestlap-body">
-                        <tr>
-                            <td id="best-lap">--</td>
-                            <td id="best-time">--:--</td>
-                            <td id="delta-to-best">--</td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
 
             <!--Lap Time Wizard-->
             <div class="pit-wizard">
@@ -225,8 +208,32 @@
                 </div>
             </div>
         </div>
+
         <!-- Right Panel -->
         <div class="right-panel">
+
+            <!-- Best Lap-->
+            <div class="pit-wizard">
+                <h3>Best Lap</h3>
+                <table class="timing-table" id="best-ses-lap">
+                    <thead>
+                        <tr>
+                            <th>Lap</th>
+                            <th>Time</th>
+                            <th>Live Delta</th>
+                        </tr>
+                    </thead>
+                    <tbody id="bestlap-body">
+                        <tr>
+                            <td id="best-lap">--</td>
+                            <td id="best-time">--:--</td>
+                            <td id="delta-to-best">--</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!--Relative Timing-->
             <div class="section">
                 <h3>Class Relative Timing</h3>
                 <table class="timing-table" id="relative-timing">
@@ -261,16 +268,13 @@
                     </tbody>
                 </table>
             </div>
-            <!--Start and stop telem stream-->
-            <div class="section">
-                <h3>Spotter Tools</h3>
-                <button class="action-button start-btn" id="start-stream-btn">Start Stream</button>
-                <button class="action-button stop-btn" id="stop-stream-btn">Stop Stream</button>
-                <div id="stream-status" class="stream-status">
-                    <div>Stream: <span id="status-text">Inactive</span></div>
-                    <div>iRacing: <span id="iracing-status">Disabled</span></div>
-                </div>
+            
+            <!--Stream Status-->
+            <div id="stream-status" class="stream-status">
+                <div>Stream: <span id="status-text">Inactive</span></div>
+                <div>iRacing: <span id="iracing-status">Disabled</span></div>
             </div>
+
         </div>
 
     </div>

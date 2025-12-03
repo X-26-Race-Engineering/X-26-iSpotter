@@ -12,6 +12,10 @@
     <div class="dashboard">
         <!-- Header -->
         <div class="header">
+            <div class="header-stream-controls">
+                <button class="action-button start-btn" id="start-stream-btn">Start Stream</button>
+                <button class="action-button stop-btn" id="stop-stream-btn">Stop Stream</button>
+            </div>
             <span>POS: <span id="position">--</span></span>
             <span style="margin: 0 40px;">LAP: <span id="lap">--</span></span>
             <span>TIME: <span id="current-lap-time">99:99.999</span></span>
@@ -200,9 +204,7 @@
             </div>
             <!--Start and stop telem stream-->
             <div class="section">
-                <h3>Spotter Tools</h3>
-                <button class="action-button start-btn" id="start-stream-btn">Start Stream</button>
-                <button class="action-button stop-btn" id="stop-stream-btn">Stop Stream</button>
+                <h3>Status</h3>
                 <div id="stream-status" class="stream-status">
                     <div>Stream: <span id="status-text">Inactive</span></div>
                     <div>iRacing: <span id="iracing-status">Disabled</span></div>
