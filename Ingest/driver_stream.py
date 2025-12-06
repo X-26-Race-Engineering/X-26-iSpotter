@@ -17,7 +17,7 @@ class stream_handlers:
     def parse_basic_forces(stream):
         """Parse basic physics data including G-forces and vehicle dynamics"""
         return {
-            'velo': float(stream['Speed'] or 0.0) * 3.6 * 0.621371,
+            'velo': float(stream['Speed'] or 0.0) * 2.23694,
             'brake': float(stream['BrakeRaw'] or 0.0),
             'clutch': 1 - float(stream['ClutchRaw'] or 0.0),
             'throttle': float(stream['ThrottleRaw'] or 0.0)
