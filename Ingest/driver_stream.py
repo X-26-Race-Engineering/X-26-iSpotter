@@ -166,8 +166,8 @@ class stream_handlers:
         #Iteratre through 100 idxs and check for gaps and deltas
         while ahead_idx >= 1 or behind_idx <= 100:
             if ahead_idx > 0 and (int(stream['CarIdxClassPosition'][ahead_idx] or 100) < me_pos) and stream['CarIdxClass'][ahead_idx] == me_class:
-                gap = round(abs(float(stream['CarIdxF2Time'][ahead_idx] or 0.0)
-                    - float(stream['CarIdxF2Time'][me_idx] or 0.0)), 1)
+                gap = round(abs(float(stream['CarIdxEstTime'][ahead_idx] or 0.0)
+                    - float(stream['CarIdxEstTime'][me_idx] or 0.0)), 1)
                 gaps.insert(0, gap)
                 
                 delta = round(
@@ -180,8 +180,8 @@ class stream_handlers:
                 
             try:
                 if behind_idx < 101 and (int(stream['CarIdxClassPosition'][behind_idx] or 1) > me_pos) and stream['CarIdxClass'][behind_idx] != None and stream['CarIdxClass'][behind_idx] == me_class:
-                    gap = round(abs(float(stream['CarIdxF2Time'][behind_idx] or 0.0)
-                    - float(stream['CarIdxF2Time'][me_idx] or 0.0)), 1)
+                    gap = round(abs(float(stream['CarIdxEstTime'][behind_idx] or 0.0)
+                    - float(stream['CarIdxEstTime'][me_idx] or 0.0)), 1)
                     gaps.append(gap)
                     
                     delta = round(
