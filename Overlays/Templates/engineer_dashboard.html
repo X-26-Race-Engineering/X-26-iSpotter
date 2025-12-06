@@ -498,7 +498,7 @@
             }
             //Update car info and trace
             if (data.basic_forces) {
-                const speed = Math.round(data.basic_forces.velo * 0.621371); // Convert km/h to mph
+                const speed = Math.round(data.basic_forces.velo);
                 document.getElementById('speed').textContent = `${speed} MPH`;
                 const throttle = data.basic_forces.throttle || 0;
                 const brake = data.basic_forces.brake || 0;
