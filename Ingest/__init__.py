@@ -6,7 +6,6 @@ Handles iRacing SDK connection and telemetry data streaming
 import irsdk
 import time
 from .driver_stream import stream_handlers as Stream
-import pandas as pd
 import threading
 import numpy as np
 import keyboard

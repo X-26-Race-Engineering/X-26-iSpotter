@@ -20,6 +20,43 @@ body {
     padding: 10px;
 }
 
+/* Vertical/Portrait Monitor Layout (aspect ratio taller than wide) */
+@media (max-aspect-ratio: 1/1) {
+    body {
+        overflow: auto;
+    }
+
+    .dashboard {
+        grid-template-columns: 1fr;
+        grid-template-rows: 100px auto auto auto;
+        height: auto;
+        min-height: 100vh;
+    }
+    
+    .header {
+        grid-column: 1;
+        grid-row: 1;
+    }
+    
+    .left-panel {
+        grid-column: 1;
+        grid-row: 2;
+        max-height: none;
+    }
+    
+    .center-panel {
+        grid-column: 1;
+        grid-row: 3;
+        min-height: 400px;
+    }
+    
+    .right-panel {
+        grid-column: 1;
+        grid-row: 4;
+        max-height: none;
+    }
+}
+
 /* Header Section */
 .header {
     grid-column: 1 / 4;
