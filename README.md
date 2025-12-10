@@ -59,8 +59,9 @@ This project simplifies the process of capturing, analyzing, and visualizing liv
 
 This project requires the following dependencies:
 
-- **Programming Language:** Python
+- **Programming Language:** Python, JavaScript
 - **Package Manager:** Pip
+- **Manual install packages**: Node.js
 
 ### Installation
 
