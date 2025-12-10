@@ -62,12 +62,12 @@ def telemetry_broadcaster():
 @app.route("/")
 def index():
     """Main dashboard page"""
-    return render_template("engineer_dashboard.html")
+    return render_template("race_dashboard.html")
 
 @app.route("/styles/<path:filename>")
 def serve_styles(filename):
     """Serve CSS files"""
-    styles_path = os.path.join('Overlays', 'Styles')
+    styles_path = os.path.join('Overlays', 'Styling')
     return send_from_directory(styles_path, filename)
 
 @app.route("/scripts/<path:filename>")

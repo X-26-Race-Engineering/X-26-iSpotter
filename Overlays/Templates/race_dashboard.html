@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>X-26 iSpotter</title>
-    <link rel="stylesheet" href="/Styling/styles.css">
+    <title>X-26 iSpotter - Race Dashboard</title>
+    <link rel="stylesheet" href="/Styling/race_styles.css">
     <script src="https://cdn.socket.io/4.5.4/socket.io.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
@@ -18,29 +18,22 @@
             <span style="margin: 0 40px;">STINT LAP: <span id="stint-lap">--</span></span>
         </div>
 
+        <!-- Header controls -->
+        <div class="header">
+
+            <!--Stream Status-->
+            <div id="stream-status" class="stream-status">
+                <div>Stream: <span id="status-text">Inactive</span></div>
+                <div>iRacing: <span id="iracing-status">Disabled</span></div>
+            </div>
+            
+            <button class="action-button start-btn" id="start-stream-btn">Start Stream</button>
+            <button class="action-button stop-btn" id="stop-stream-btn">Stop Stream</button>
+            <!-- <a href="/" class="main-menu-btn">Main Menu</a>-->
+        </div>
+
         <!-- Left Panel -->
         <div class="left-panel">
-
-            <!-- Best Lap-->
-            <div class="pit-wizard">
-                <h3>Best Lap</h3>
-                <table class="timing-table" id="best-ses-lap">
-                    <thead>
-                        <tr>
-                            <th>Lap</th>
-                            <th>Time</th>
-                            <th>Live Delta</th>
-                        </tr>
-                    </thead>
-                    <tbody id="bestlap-body">
-                        <tr>
-                            <td id="best-lap">--</td>
-                            <td id="best-time">--:--</td>
-                            <td id="delta-to-best">--</td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
 
             <!--Lap Time Wizard-->
             <div class="pit-wizard">
@@ -199,33 +192,36 @@
                         </tr>
                     </tbody>
                 </table>
-                <div>
-                
-                <!-- Corner Speeds (Not Implemented Yet) -->
-                <h3>Corner Speeds</h3>
-                <table class="sectors-table">
-                    <thead>
-                        <tr>
-                            <th>Corner</th>
-                            <th>Entry</th>
-                            <th>Apex</th>
-                            <th>Exit</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr>
-                            <td id="Corner">--</td>
-                            <td id="entry">--<span> MPH</span></td>
-                            <td id="apex">--<span> MPH</span></td>
-                            <td id="exit">--<span> MPH</span></td>
-                        </tr>
-                    </tbody>
-                </table>
+            </div>
                 </div>
             </div>
         </div>
+
         <!-- Right Panel -->
         <div class="right-panel">
+
+            <!-- Best Lap-->
+            <div class="pit-wizard">
+                <h3>Best Lap</h3>
+                <table class="timing-table" id="best-ses-lap">
+                    <thead>
+                        <tr>
+                            <th>Lap</th>
+                            <th>Time</th>
+                            <th>Live Delta</th>
+                        </tr>
+                    </thead>
+                    <tbody id="bestlap-body">
+                        <tr>
+                            <td id="best-lap">--</td>
+                            <td id="best-time">--:--</td>
+                            <td id="delta-to-best">--</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!--Relative Timing-->
             <div class="section">
                 <h3>Class Relative Timing</h3>
                 <table class="timing-table" id="relative-timing">
@@ -260,16 +256,7 @@
                     </tbody>
                 </table>
             </div>
-            <!--Start and stop telem stream-->
-            <div class="section">
-                <h3>Spotter Tools</h3>
-                <button class="action-button start-btn" id="start-stream-btn">Start Stream</button>
-                <button class="action-button stop-btn" id="stop-stream-btn">Stop Stream</button>
-                <div id="stream-status" class="stream-status">
-                    <div>Stream: <span id="status-text">Inactive</span></div>
-                    <div>iRacing: <span id="iracing-status">Disabled</span></div>
-                </div>
-            </div>
+
         </div>
 
     </div>
@@ -498,7 +485,7 @@
             }
             //Update car info and trace
             if (data.basic_forces) {
-                const speed = Math.round(data.basic_forces.velo);
+                const speed = Math.round(data.basic_forces.velo * 0.621371); // Convert km/h to mph
                 document.getElementById('speed').textContent = `${speed} MPH`;
                 const throttle = data.basic_forces.throttle || 0;
                 const brake = data.basic_forces.brake || 0;
