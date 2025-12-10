@@ -64,25 +64,25 @@ def index():
     """Home page"""
     return render_template("home_screen.html")
 
-@app.route("/engineer_dashboard.html")
+@app.route("/race_dashboard.html")
 def engineer_dashboard():
     """Engineer dashboard page"""
     return render_template("race_dashboard.html")
 
-@app.route("/spotter_dashboard.html")
-def spotter_dashboard():
-    """Spotter dashboard page"""
-    return render_template("spotter_dashboard.html")
-
-@app.route("/platform_analysis.html")
-def platform_analysis():
-    """Platform analysis page (placeholder)"""
-    return render_template("platform_analysis.html")
-
 @app.route("/strategy_dashboard.html")
-def strategy_dashboard():
-    """Strategy dashboard page (placeholder)"""
+def spotter_dashboard():
+    """Strategy dashboard page"""
     return render_template("strategy_dashboard.html")
+
+@app.route("/join_screen.html")
+def platform_analysis():
+    """Room join screen (placeholder)"""
+    return render_template("join_screen.html")
+
+@app.route("/race_screen.html")
+def strategy_dashboard():
+    """Room creation screen/lobby"""
+    return render_template("race_screen.html")
 
 @app.route("/Styling/<path:filename>")
 def serve_styles(filename):
