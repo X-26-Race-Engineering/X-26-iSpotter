@@ -5,6 +5,7 @@ import numpy as np
 import keyboard
 import math
 from .sessionInfoParser import sessionInfoParsers as sip
+import json
 
 #Global vars
 frame = {}
@@ -46,14 +47,24 @@ class stream_handlers:
         """Parse relative timing and distance data"""
         
         me_idx = int(stream['PlayerCarIdx'] or 1)
-        me_pos = int(stream['CarIdxClassPosition'][me_idx] or 1)
+        me_pos = int(stream['CarIdxPosition'][me_idx] or 1)
+        me_class_pos = int(stream['CarIdxClassPosition'][me_idx] or 1)
         
-        for car in cars:
-            pass
+        for i in range(len(cars)):
+            cars[i]['Position'] = int(stream['CarIdxPosition'][cars[i]['CarIdx']] or 1)
+            cars[i]['Class_Pos'] = stream['CarIdxClassPosition'][cars[i]['CarIdx']]
+            cars[i]['Lap_Started'] = stream['CarIdxLap'][cars[i]['CarIdx']]
+            cars[i]['Pit_Status'] = stream['CarIdxOnPitRoad'][cars[i]['CarIdx']]
+            cars[i]['Gap_To_Leader'] = stream['CarIdxF2Time'][cars[i]['CarIdx']]
+            cars[i]['Lap_Dist'] = stream['CarIdxLapDistPct'][cars[i]['CarIdx']]
+            cars[i]['Relative_Gap'] = round(float(stream['CarIdxEstTime'][cars[i]['CarIdx']] or 0.0) - float(stream['CarIdxEstTime'][me_idx] or 0.0), 2)
         
+        pos_cars = sorted(cars, key=lambda x: x['Position'])
         return {
             'curr_position': me_pos,
-            'cars': cars
+            'curr_class_position': me_class_pos,
+            'cars_by_pos': json.dumps(pos_cars),
+            'cars_by_rel': None
         }
 
     
@@ -101,7 +112,7 @@ class stream_handlers:
         me_idx = int(stream['PlayerCarIdx'] or 1)
         return {
             'fuel_level': round(float(stream['FuelLevel'] or 0.0), 1),
-            'fuel_level_pct': float(stream['FuelLevelPct'] or 0.0),
+            'fuel_level_pct': round(float(stream['FuelLevelPct'] or 0.0), 1),
             'fuel_use_per_hour': float(stream['FuelUsePerHour'] or 0.0),
             'pit_status': float(stream['CarIdxOnPitRoad'][me_idx] or False)
         }
@@ -139,18 +150,18 @@ class stream_handlers:
             'laps_completed': int(stream['CarIdxLapCompleted'][me_idx] or 1),
             'avg_laps_per_stint': avg_lps,
             'stints_completed': stint_n,
-            'avg_fuel_per_lap': avg_fpl,
-            'laps_fuel': lf ,
+            'avg_fuel_per_lap': max(round(avg_fpl, 1), 100),
+            'laps_fuel': max(round(lf, 1), 1000),
             'avg_stop_time': sum(stop_times) / len(stop_times),
             'curr_stop_time': curr_stop_time
         }
     
     @staticmethod
-    def parse_all(stream, ids, session):
+    def parse_all(stream, cars):
         """Parse all telemetry data for current tick"""
         return {
             'basic_forces': stream_handlers.parse_basic_forces(stream),
-            'relative_timing': stream_handlers.parse_relative_timing(stream, ids),
+            'relative_timing': stream_handlers.parse_relative_timing(stream, cars),
             'lap_times': stream_handlers.parse_lap_times(stream),
             'consumables': stream_handlers.parse_consumables(stream),
             'drivetrain': stream_handlers.parse_drivetrain(stream),
