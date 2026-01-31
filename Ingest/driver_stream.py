@@ -247,19 +247,13 @@ class stream_handlers:
             'rpm': int(stream['RPM'] or 0),
             'gear': int(stream['Gear'] or 0),
         }
-    
     @staticmethod
     def parse_all(stream):
         """Parse all telemetry data for current tick"""
-        # Get basic forces data
-        basic_forces = stream_handlers.parse_basic_forces(stream)
-        
-        # Get timing data
-        relative_timing = stream_handlers.parse_relative_timing(stream)
         
         return {
-            'basic_forces': basic_forces,
-            'relative_timing': relative_timing,
+            'basic_forces': stream_handlers.parse_basic_forces(stream),
+            'relative_timing': stream_handlers.parse_relative_timing(stream),
             'lap_times': stream_handlers.parse_lap_times(stream),
             'consumables': stream_handlers.parse_consumables(stream),
             'drivetrain': stream_handlers.parse_drivetrain(stream),

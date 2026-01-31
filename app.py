@@ -10,7 +10,7 @@ import time
 import os
 
 # Import from Ingestion module
-from Ingest import get_frame, start_stream, stop_stream
+from Ingest.raceEngine import get_frame, start_stream, stop_stream
 
 # Initialize Flask
 app = Flask(__name__, 
@@ -67,12 +67,12 @@ def index():
 @app.route("/race_dashboard.html")
 def engineer_dashboard():
     """Engineer dashboard page"""
-    return render_template("race_dashboard.html")
+    return render_template("race_dashboard_v2.html")
 
-@app.route("/strategy_dashboard.html")
+@app.route("/car_health_dashboard.html")
 def spotter_dashboard():
     """Strategy dashboard page"""
-    return render_template("strategy_dashboard.html")
+    return render_template("car_health_dashboard.html")
 
 @app.route("/join_screen.html")
 def platform_analysis():
@@ -94,6 +94,12 @@ def serve_styles(filename):
 def serve_images(filename):
     """Serve image files"""
     images_path = os.path.join('Overlays', 'Images')
+    return send_from_directory(images_path, filename)
+
+@app.route("/Scripts/<path:filename>")
+def serve_scripts(filename):
+    """Serve image files"""
+    images_path = os.path.join('Overlays', 'Scripts')
     return send_from_directory(images_path, filename)
 
 @app.route("/health")

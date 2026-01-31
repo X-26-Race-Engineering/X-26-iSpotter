@@ -1,2 +1,3 @@
-#Ignore run telemetry file
 run_telemetry.bat
+mapping.json
+vars.txt

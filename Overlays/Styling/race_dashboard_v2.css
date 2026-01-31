@@ -1,0 +1,720 @@
+/* ==================== RESET ==================== */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Arial', sans-serif;
+    background: #0d0f1d;
+    color: white;
+    overflow: hidden;
+}
+
+/* ==================== MAIN LAYOUT - FIXED SIZES FOR 1920x1200 ==================== */
+nav {
+    background: #0d0f1d;
+    justify-content: center;
+    text-align: center;
+    max-height:45px;
+    max-width: 100%;
+}
+
+ul {
+    max-height: 45px;
+}
+
+li {
+    display: inline;
+    max-height: 45px;
+    background: #31333f;
+    border-radius: 6px;
+    border: 2px solid #fff;
+}
+
+a{
+    color: #FFFF;
+    text-decoration: None;
+}
+
+.dashboard-container {
+    display: flex;
+    height: 100vh;
+    max-height: 1125px;
+    gap: 0;
+    overflow: hidden;
+}
+
+/* ==================== LEFT PANEL: POSITION TABLE - FIXED WIDTH ==================== */
+.position-panel {
+    width: 380px;
+    background: #0d0f1d;
+    display: flex;
+    flex-direction: column;
+    border: 2px solid #fff;
+    border-radius: 8px;
+    justify-content: center;
+    margin-top: 4px;
+    max-height: 100%;
+}
+
+.position-header {
+    display: grid;
+    grid-template-columns: 60px 80px 1fr 120px;
+    padding: 5px 6px;
+    font-size: 12px;
+    font-weight: bold;
+    border-bottom: 1px solid #333;
+    text-align: center;
+    height: 35px;
+    /* Fixed height */
+    width: 385px;
+}
+
+.position-table {
+    flex: 1;
+    overflow-y: auto;
+    max-height: 1165px;
+    /* Fixed max height (1200 - 35px header) */
+}
+
+.position-row {
+    display: grid;
+    grid-template-columns: 60px 80px 1fr 120px;
+    padding: 6px;
+    font-size: 13px;
+    border-bottom: 1px solid #111;
+    text-align: center;
+    height: 32px;
+    /* Fixed height for each row */
+}
+
+.position-row:nth-child(odd) {
+    background: #0a0a3a;
+}
+
+.position-row:nth-child(even) {
+    background: #171b34;
+}
+
+.position-row span:nth-child(3) {
+    text-align: left;
+    padding-left: 8px;
+}
+
+/* ==================== RIGHT PANEL: MAIN CONTENT - FIXED LAYOUT ==================== */
+.main-panel {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    padding: 4px;
+    background: #0d0f1d;
+}
+
+/* ==================== TOP ROW - FIXED HEIGHTS ==================== */
+.top-row {
+    display: flex;
+    gap: 4px;
+    height: 90px;
+    /* Fixed height */
+}
+
+/* Standard Info Box - FIXED SIZE */
+.info-box {
+    width: 140px;
+    /* Fixed width */
+    height: 90px;
+    /* Fixed height */
+    background: #0d0f1d;
+    border: 2px solid #fff;
+    border-radius: 8px;
+    padding: 5px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    flex-shrink: 0;
+    /* Don't shrink */
+}
+
+.info-label {
+    font-size: 9px;
+    color: #999;
+    margin-bottom: 3px;
+    text-align: center;
+}
+
+.info-value {
+    font-size: 34px;
+    font-weight: bold;
+    line-height: 1;
+}
+
+/* Wide Info Box - FIXED SIZE */
+.info-box-wide {
+    width: 205px;
+    /* Fixed width - wider than standard */
+    height: 90px;
+    /* Fixed height */
+    background: #0d0f1d;
+    border: 2px solid #fff;
+    border-radius: 8px;
+    padding: 5px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    flex-shrink: 0;
+    /* Don't shrink */
+}
+
+.info-subtext {
+    font-size: 12px;
+    color: #999;
+    margin-top: 3px;
+}
+
+/* Flag Box - FIXED SIZE */
+.flag-box {
+    width: 100px;
+    /* Fixed width */
+    height: 90px;
+    /* Fixed height */
+    background: #171b34;
+    border: 2px solid #fff;
+    border-radius: 8px;
+    padding: 5px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    flex-shrink: 0;
+    /* Don't shrink */
+}
+
+.flag-indicator {
+    width: 100%;
+    flex: 1;
+    border-radius: 5px;
+    background: #00ff00;
+    margin-top: 3px;
+}
+
+/* ==================== MIDDLE ROW - FIXED HEIGHT ==================== */
+.middle-row {
+    display: flex;
+    gap: 4px;
+    height: 60px;
+    /* Fixed height */
+}
+
+/* Mini Sectors Box - BESPOKE FIXED SIZE */
+.sectors-box {
+    width: 675px;
+    height: 90px;
+    background: #0d0f1d;
+    border: 2px solid #fff;
+    border-radius: 8px;
+    padding: 5px;
+    display: flex;
+    flex-direction: column;
+    flex-shrink: 0;
+}
+
+.sectors-label {
+    font-size: 9px;
+    color: #999;
+    text-align: center;
+    margin-bottom: 3px;
+}
+
+.sectors-grid {
+    display: grid;
+    grid-template-columns: repeat(10, 1fr);
+    gap: 2px;
+    flex: 1;
+}
+
+.sector-cell {
+    background: #1a1a1a;
+    border: 2px solid #444;
+    border-radius: 6px;
+    justify-content: center;
+    align-items: center;
+    display: flex;
+    font-size: 10px;
+}
+
+/* Predicted Lap Box - FIXED SIZE (same as wide info box) */
+.predicted-box {
+    width: 400px;
+    /* Fixed width */
+    height: 60px;
+    /* Fixed height */
+    background: #0d0f1d;
+    border: 2px solid #fff;
+    border-radius: 8px;
+    padding: 5px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    flex-shrink: 0;
+    /* Don't shrink */
+}
+
+/* ==================== BOTTOM ROW - FIXED HEIGHT ==================== */
+.bottom-row {
+    display: flex;
+    gap: 4px;
+    height: 600px;
+    /* Fixed height - remaining space (1200 - 90 - 60 - 8px gaps) */
+    margin-top: 30px;
+}
+
+/* ==================== CIRCLE OF DOOM - BESPOKE FIXED SIZE ==================== */
+.circle-box {
+    width: 500px;
+    /* Fixed width - bespoke */
+    height: 452px;
+    /* Fixed height */
+    background: #0d0f1d;
+    border: 2px solid #fff;
+    border-radius: 8px;
+    padding: 12px;
+    display: flex;
+    justify-content: center;
+    position: relative;
+    flex-shrink: 0;
+    /* Don't shrink */
+}
+
+.strategy-hot-box {
+    width: 500px;
+    background: #0d0f1d;
+    display: flex;
+    flex-direction: column;
+    border: 2px solid #fff;
+    border-radius: 8px;
+    justify-content: center;
+    margin-top: 4px;
+    overflow-y: auto;
+}
+
+.strategy-grid {
+    width: 490px;
+    display: grid;
+    background: #0d0f1d;
+    gap: 0px;
+    grid-template-columns: 285px 205px
+
+}
+.strategy-text-col {
+    width: flex;
+    background: #0d0f1d;
+    gap: 4px;
+}
+
+.strategy-text {
+    padding: 3px;
+    size: 10px;
+}
+
+.circle-svg {
+    width: 100%;
+    max-width: 600px;
+    height: auto;
+}
+
+.circle-text {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    text-align: center;
+    font-size: 11px;
+    color: #fff;
+    pointer-events: none;
+    line-height: 1.6;
+}
+
+.center-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 0px;
+    width: 100%;
+    max-width: 500px;
+}
+
+/* ==================== RIGHT GRID - FIXED SIZES ==================== */
+.right-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    width: 425px;
+    /* Fixed width - remaining space (1920 - 380 - 650 - 8px gaps) */
+    height: 150px;
+}
+
+/* Row 1: Telemetry Module - BESPOKE FIXED SIZE */
+.telemetry-module {
+    width: 382px;
+    /* Fixed width */
+    height: 150px;
+    /* Fixed height - bespoke */
+    background: #0d0f1d;
+    border: 2px solid #fff;
+    border-radius: 8px;
+    padding: 6px;
+    display: flex;
+    gap: 6px;
+    flex-shrink: 0;
+    /* Don't shrink */
+}
+
+/* Row 2: Meter Box - FIXED SIZE (Wide Data Box) */
+.meter-box {
+    width: 455px;
+    /* Fixed width */
+    height: 50px;
+    /* Fixed height - narrow wrapper */
+    background: #0d0f1d;
+    border: 2px solid #fff;
+    border-radius: 8px;
+    padding: 4px 12px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    gap: 3px;
+    flex-shrink: 0;
+    /* Don't shrink */
+}
+
+.relative-header {
+    display: grid;
+    grid-template-columns: 60px 80px 1fr 120px;
+    padding: 5px 6px;
+    font-size: 12px;
+    font-weight: bold;
+    border-bottom: 1px solid #333;
+    text-align: center;
+    height: 35px;
+    /* Fixed height */
+    width: 370px;
+    justify-content: center;
+}
+
+.relative-table {
+    flex: 1;
+    overflow-y: auto;
+    max-height: 250px;
+    /* Fixed max height (1200 - 35px header) */
+    width: 379px;
+}
+
+/* Row 3: Three Data Boxes */
+.right-grid-row-3 {
+    display: flex;
+    gap: 4px;
+    height: 90px;
+    /* Fixed height - same as info boxes */
+}
+
+/* Row 4: Three Data Boxes */
+.right-grid-row-4 {
+    margin-top: 10px;
+    display: flex;
+    gap: 4px;
+    height: 90px;
+    /* Fixed height - same as info boxes */
+}
+
+.right-grid-row-5 {
+    margin-top: 10px;
+    display: flex;
+    gap: 4px;
+    height: 250px;
+    border: 2px solid #fff;
+    border-radius: 8px;
+    width: 385px;
+}
+
+/* Standard Data Box - FIXED SIZE (same as info-box) */
+.data-box {
+    width: 125px;
+    /* Fixed width - (882 - 8px gaps) / 3 */
+    height: 100px;
+    /* Fixed height */
+    background: #0d0f1d;
+    border: 2px solid #fff;
+    border-radius: 8px;
+    padding: 6px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    flex-shrink: 0;
+    /* Don't shrink */
+}
+
+.data-label {
+    font-size: 10px;
+    color: #999;
+    margin-bottom: 3px;
+    text-align: center;
+}
+
+.data-value-large {
+    font-size: 30px;
+    font-weight: bold;
+    line-height: 1;
+}
+
+.data-value-medium {
+    font-size: 18px;
+    font-weight: bold;
+    line-height: 1;
+}
+
+.data-unit {
+    font-size: 10px;
+    color: #888;
+    margin-top: 2px;
+}
+
+/* ==================== METER BOX ==================== */
+.meter-box {
+    width: 384px;
+    height: 90px;
+    background: #0d0f1d;
+    border: 2px solid #fff;
+    border-radius: 8px;
+    padding: 4px 12px;
+    /* Much narrower vertical padding */
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 3px;
+    /* Minimal gap */
+}
+
+.meter-bar-container {
+    width: 100%;
+}
+
+.meter-bar-bg {
+    width: 100%;
+    height: 40px;
+    background: #1a1a1a;
+    border: 2px solid #444;
+    border-radius: 6px;
+    position: relative;
+}
+
+.meter-center {
+    position: absolute;
+    left: 50%;
+    top: 0;
+    bottom: 0;
+    width: 2px;
+    background: #666;
+    transform: translateX(-50%);
+}
+
+.meter-indicator {
+    position: absolute;
+    width: 10px;
+    height: 100%;
+    background: #fff;
+    left: 50%;
+    transform: translateX(-50%);
+    transition: left 0.05s ease-out;
+}
+
+/* Line Chart */
+.line-chart-container {
+    flex: 2;
+    height: 100%;
+    position: relative;
+    border: 2px solid #333;
+    border-radius: 4px;
+    background: #0a0a0a;
+}
+
+#lineChart {
+    width: 100%;
+    height: 100%;
+    display: block;
+}
+
+/* Input Bars */
+.input-bars-container {
+    flex: 1;
+    height: 100%;
+    display: flex;
+    gap: 4px;
+    /* Tighter gap */
+    align-items: flex-end;
+}
+
+.input-bar {
+    flex: 1;
+    position: relative;
+    background: #1a1a1a;
+    border: 2px solid #333;
+    border-radius: 4px;
+    height: 100%;
+    overflow: hidden;
+}
+
+.input-bar-fill {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    transition: height 0.05s linear;
+    border-radius: 2px;
+}
+
+.clutch-bar .input-bar-fill {
+    background: linear-gradient(to top, #0066ff, #0099ff);
+}
+
+.brake-bar .input-bar-fill {
+    background: linear-gradient(to top, #cc0000, #ff3333);
+}
+
+.throttle-bar .input-bar-fill {
+    background: linear-gradient(to top, #00aa00, #00ff00);
+}
+
+.action-button {
+width: 100px;
+height: 25px;
+border-radius: 8px;
+}
+
+.action-button:active {
+    transform: scale(0.98);
+}
+
+.start-btn {
+    background: #00cc00;
+    color: white;
+}
+
+.stop-btn {
+    background: #ff4444;
+    color: white;
+}
+
+/* ==================== SCROLLBAR ==================== */
+.position-table::-webkit-scrollbar {
+    width: 6px;
+}
+
+.position-table::-webkit-scrollbar-track {
+    background: #0d0f1d;
+}
+
+.position-table::-webkit-scrollbar-thumb {
+    background: #333;
+    border-radius: 3px;
+}
+
+/* ==================== FULLSCREEN TOGGLE BUTTON ==================== */
+.fullscreen-toggle {
+    position: fixed;
+    top: 10px;
+    right: 10px;
+    width: 40px;
+    height: 40px;
+    background: rgba(0, 0, 0, 0.7);
+    border: 2px solid #fff;
+    border-radius: 8px;
+    color: #fff;
+    font-size: 24px;
+    cursor: pointer;
+    z-index: 9999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+    opacity: 0.5;
+}
+
+.fullscreen-toggle:hover {
+    opacity: 1;
+    background: rgba(0, 0, 0, 0.9);
+    transform: scale(1.1);
+}
+
+.fullscreen-toggle.in-fullscreen {
+    opacity: 0.3;
+}
+
+.fullscreen-toggle.in-fullscreen:hover {
+    opacity: 1;
+}
+
+.fullscreen-icon {
+    pointer-events: none;
+}
+
+/* Hide button in fullscreen after 3 seconds of no mouse movement */
+body:fullscreen .fullscreen-toggle {
+    transition: opacity 0.5s ease;
+}
+
+body:fullscreen:not(:hover) .fullscreen-toggle {
+    opacity: 0;
+}
+
+body:fullscreen:hover .fullscreen-toggle {
+    opacity: 0.3;
+}
+
+body:fullscreen .fullscreen-toggle:hover {
+    opacity: 1;
+}
+
+/* ==================== RESPONSIVE: VERTICAL LAYOUT ==================== */
+@media (max-aspect-ratio: 1/1) {
+    .dashboard-container {
+        grid-template-columns: 1fr;
+        grid-template-rows: 300px 1fr;
+        height: auto;
+        overflow-y: auto;
+    }
+
+    .position-panel {
+        max-height: 300px;
+        width: 300px;
+    }
+
+    .top-row {
+        grid-template-columns: repeat(3, 1fr);
+        grid-template-rows: auto auto;
+        height: auto;
+    }
+
+    .info-box-wide {
+        grid-column: span 2;
+        width: 100px;
+        height: 70px;
+    }
+
+    .middle-row {
+        grid-template-columns: 1fr;
+        grid-template-rows: auto auto;
+        height: auto;
+    }
+
+    .bottom-row {
+        grid-template-columns: 1fr;
+        grid-template-rows: auto auto;
+    }
+}

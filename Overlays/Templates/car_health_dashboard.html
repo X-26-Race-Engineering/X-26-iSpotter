@@ -1,0 +1,191 @@
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>X-26 iSpotter - Car Health Dashboard</title>
+    <link rel="stylesheet" href="/Styling/race_dashboard_v2.css">
+    <script src="https://cdn.socket.io/4.5.4/socket.io.min.js"></script>
+</head>
+<body>
+    <nav>
+        <ul>
+            <li><a href="race_dashboard.html">Race Overview</a></li>
+            <li style="background: #b1b1b1"><a href="car_health_dashboard.html">Practice/Quali Helper</a></li>
+            <li><a href="room_info.html">Room Info</a></li>
+            <li style="border: None; background: #0d0f1d; margin-left: 25px;"> Status: <span id="status-text">Stopped</span></li>
+            <li style="border: None; background: #0d0f1d; margin-left: 25px; margin-right: 25px;"> iRacing Connection: <span id="iracing-status">Disconnected</span></li>
+            <button class="action-button start-btn" id="start-stream-btn">Start Stream</button>
+            <button class="action-button stop-btn" id="stop-stream-btn">Stop Stream</button>
+        </ul>
+    </nav>
+    <!-- Fullscreen Toggle Button (Hidden by default, press F11 or click) -->
+    <button id="fullscreen-btn" class="fullscreen-toggle" title="Toggle Fullscreen (F11)">
+        <span class="fullscreen-icon">⛶</span>
+    </button>
+
+    <div class="dashboard-container">
+    </div>
+    <script>
+        // ==================== FULLSCREEN / FRAMELESS MODE ====================
+        
+        const fullscreenBtn = document.getElementById('fullscreen-btn');
+        const dashboard = document.documentElement;
+
+        // Toggle fullscreen function
+        function toggleFullscreen() {
+            if (!document.fullscreenElement) {
+                // Enter fullscreen
+                dashboard.requestFullscreen().catch(err => {
+                    console.log(`Error attempting to enable fullscreen: ${err.message}`);
+                });
+            } else {
+                // Exit fullscreen
+                document.exitFullscreen();
+            }
+        }
+
+        // Button click handler
+        fullscreenBtn.addEventListener('click', toggleFullscreen);
+
+        // Keyboard shortcut: F11
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'F11') {
+                e.preventDefault();
+                toggleFullscreen();
+            }
+        });
+
+        // Update button visibility based on fullscreen state
+        document.addEventListener('fullscreenchange', () => {
+            if (document.fullscreenElement) {
+                fullscreenBtn.classList.add('in-fullscreen');
+                fullscreenBtn.title = 'Exit Fullscreen (F11 or ESC)';
+            } else {
+                fullscreenBtn.classList.remove('in-fullscreen');
+                fullscreenBtn.title = 'Toggle Fullscreen (F11)';
+            }
+        });
+
+        // Auto-enter fullscreen on load (optional - comment out if not desired)
+        // window.addEventListener('load', () => {
+        //     setTimeout(() => toggleFullscreen(), 500);
+        // });
+
+                // Stream control functions
+        let streamActive = false;
+
+        // Start stream button handler
+        document.getElementById('start-stream-btn').addEventListener('click', async () => {
+            try {
+                const response = await fetch('/api/stream/start', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                const data = await response.json();
+                console.log('Start stream response:', data);
+                
+                if (data.status === 'success' || data.status === 'already_running') {
+                    updateStreamStatus(true);
+                }
+            } catch (error) {
+                console.error('Error starting stream:', error);
+                alert('Failed to start stream: ' + error.message);
+            }
+        });
+
+        // Stop stream button handler
+        document.getElementById('stop-stream-btn').addEventListener('click', async () => {
+            try {
+                const response = await fetch('/api/stream/stop', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                const data = await response.json();
+                console.log('Stop stream response:', data);
+                
+                if (data.status === 'success' || data.status === 'not_running') {
+                    updateStreamStatus(false);
+                }
+            } catch (error) {
+                console.error('Error stopping stream:', error);
+                alert('Failed to stop stream: ' + error.message);
+            }
+        });
+
+        // Update UI based on stream status
+        function updateStreamStatus(isActive) {
+            streamActive = isActive;
+            const statusText = document.getElementById('status-text');
+            const startBtn = document.getElementById('start-stream-btn');
+            const stopBtn = document.getElementById('stop-stream-btn');
+            
+            if (isActive) {
+                statusText.textContent = 'Active';
+                statusText.style.color = '#00ff00';
+                startBtn.disabled = true;
+                startBtn.style.opacity = '0.5';
+                stopBtn.disabled = false;
+                stopBtn.style.opacity = '1';
+            } else {
+                statusText.textContent = 'Inactive';
+                statusText.style.color = '#ff0000';
+                startBtn.disabled = false;
+                startBtn.style.opacity = '1';
+                stopBtn.disabled = true;
+                stopBtn.style.opacity = '0.5';
+            }
+        }
+
+        // Update iRacing connection status
+        function updateIRacingStatus(isConnected) {
+            const iracingStatus = document.getElementById('iracing-status');
+            if (isConnected) {
+                iracingStatus.textContent = 'Connected';
+                iracingStatus.style.color = '#00ff00';
+            } else {
+                iracingStatus.textContent = 'Disconnected';
+                iracingStatus.style.color = '#ff0000';
+            }
+        }
+
+        // Listen for stream status updates from server
+        socket.on('stream_status', (data) => {
+            console.log('Stream status update:', data);
+            updateStreamStatus(data.status === 'started');
+        });
+
+        // Check initial stream status
+        async function checkStreamStatus() {
+            try {
+                const response = await fetch('/api/stream/status');
+                const data = await response.json();
+                updateStreamStatus(data.is_running);
+                if (data.iracing_connected !== undefined) {
+                    updateIRacingStatus(data.iracing_connected);
+                }
+            } catch (error) {
+                console.error('Error checking stream status:', error);
+            }
+        }
+
+        // Check status on page load
+        checkStreamStatus();
+
+        // Connection status
+        socket.on('connect', () => {
+            console.log('Connected to telemetry server');
+        });
+
+        socket.on('disconnect', () => {
+            console.log('Disconnected from telemetry server');
+        });
+
+    </script>
+</body>
+</html>
