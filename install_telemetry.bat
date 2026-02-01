@@ -55,7 +55,6 @@ REM Install packages one by one to better handle errors
 echo Installing packages
 
 python -m pip install -r requirements.txt
-npm install electron --save-dev
 
 if errorlevel 1 goto :install_error
 
@@ -116,6 +115,10 @@ echo taskkill /f /im python.exe >nul 2>&1
 echo echo  Shutdown complete.
 echo echo ============================================================
 ) > run_telemetry.bat
+
+echo installing npm and packages...
+
+npm install electron
 
 echo.
 echo ============================================================

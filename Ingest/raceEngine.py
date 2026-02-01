@@ -27,6 +27,7 @@ last_pit_lap = 0
 fuel_start = 0.0
 pit_status = False
 last_avg_fuel = 0.0
+last_fpl = 1
 
 class stream_handlers:
     
@@ -36,10 +37,11 @@ class stream_handlers:
         me_idx = int(stream['PlayerCarIdx'] or 1)
         return {
             'velo': float(stream['Speed'] or 0.0) * 2.23694,
-            'brake': float(stream['BrakeRaw'] or 0.0),
-            'clutch': 1 - float(stream['ClutchRaw'] or 0.0),
-            'throttle': float(stream['ThrottleRaw'] or 0.0),
-            'steeringAngle': float(stream['CarIdxSteer'][me_idx] or 0.0)
+            'brake': float(stream['Brake'] or 0.0),
+            'clutch': 1 - float(stream['Clutch'] or 0.0),
+            'throttle': float(stream['Throttle'] or 0.0),
+            'steeringAngle': -float(stream['SteeringWheelAngle'] or 0.0),
+            'maxSteeringAngle': float(stream['SteeringWheelAngleMax'] or 0.0)
         }
         
     @staticmethod
@@ -47,14 +49,20 @@ class stream_handlers:
         """Parse relative timing and distance data"""
         
         me_idx = int(stream['PlayerCarIdx'] or 1)
-        me_pos = int(stream['CarIdxPosition'][me_idx] or 1)
-        me_class_pos = int(stream['CarIdxClassPosition'][me_idx] or 1)
+        me_pos = int(stream['PlayerCarPosition'] or 1)
+        me_class_pos = int(stream['PlayerCarClassPosition'] or 1)
+        me_lap_dist = float(stream['LapDistPct'] or 0.0)
 
         if cars == None or cars == []:
-            return {'curr_position': me_pos,
-            'curr_class_position': me_class_pos}
+            return {
+                'curr_position': me_pos,
+                'curr_class_position': me_class_pos,
+                'lap_dist': me_lap_dist
+            }
         
         for i in range(len(cars)):
+            if(cars[i]['CarIdx'] == me_idx):
+                continue
             cars[i]['Position'] = int(stream['CarIdxPosition'][cars[i]['CarIdx']] or 1)
             cars[i]['Class_Pos'] = stream['CarIdxClassPosition'][cars[i]['CarIdx']]
             cars[i]['Lap_Started'] = stream['CarIdxLap'][cars[i]['CarIdx']]
@@ -68,7 +76,8 @@ class stream_handlers:
             'curr_position': me_pos,
             'curr_class_position': me_class_pos,
             'cars_by_pos': pos_cars,
-            'cars_by_rel': None
+            'cars_by_rel': None,
+            'lap_dist': me_lap_dist
         }
 
     
@@ -78,7 +87,7 @@ class stream_handlers:
         me_idx = int(stream['PlayerCarIdx'] or 1)
         
         current_lap_time = float(stream['LapCurrentLapTime'] or 0.0)
-        best_lap_time = float(stream['CarIdxBestLapTime'][me_idx] or np.inf)
+        best_lap_time = float(stream['LapBestLapTime'] or np.inf)
         lap_pct = float(stream['CarIdxLapDistPct'][me_idx] or 0.0)
                 
         NUM_SECTORS = 10  # Easy to change: 4, 9, 16, etc.
@@ -96,13 +105,13 @@ class stream_handlers:
             current_sector = current_sector + 1
             
         return {
-            'lap_best_lap_time': float(stream['CarIdxBestLapTime'][me_idx] or np.inf),
-            'lap_last_lap_time': float(stream['CarIdxLastLapTime'][me_idx] or 0.0),
+            'lap_best_lap_time': float(stream['LapBestLapTime'] or 0.0),
+            'lap_last_lap_time': float(stream['LapLastLapTime'] or 0.0),
             'lap_current_lap_time': float(stream['LapCurrentLapTime'] or 0.0),
-            'lap_best_lap': int(stream['CarIdxBestLapNum'][me_idx] or 1),
+            'lap_best_lap': int(stream['CarIdxBestLap'] or 1),
             'live_delta': float(stream['LapDeltaToBestLap'] or 0.0),
             'leader_delta': float(stream['LapDeltaToSessionBestLap'] or 0.0),
-            'lap': int(stream['CarIdxLap'][me_idx] or 0),
+            'lap': int(stream['Lap'] or 0),
             'laps_remaining': int(stream['SessionLapsRemainEx'] or 0),
             'time_remaining': float(stream['SessionTimeRemain'] or 0.0),
             'session_time_total': float(stream['SessionTimeTotal'] or 0.0),
@@ -118,7 +127,7 @@ class stream_handlers:
             'fuel_level': round(float(stream['FuelLevel'] or 0.0), 1),
             'fuel_level_pct': round(float(stream['FuelLevelPct'] or 0.0), 1),
             'fuel_use_per_hour': float(stream['FuelUsePerHour'] or 0.0),
-            'pit_status': float(stream['CarIdxOnPitRoad'][me_idx] or False)
+            'pit_status': bool(stream['OnPitRoad'] or False)
         }
     
     @staticmethod
@@ -134,24 +143,26 @@ class stream_handlers:
         
     @staticmethod
     def get_hotbox(stream):
-        me_idx = int(stream['PlayerCarIdx'] or 1)
+        global stint_l
+        global last_fpl
+        global stint_n
         
         if stint_n > 1:
             avg_lps = last_pit_lap / stint_n
         else:
             avg_lps = 0
             
-        if stream['CarIdxLapCompleted'][me_idx] > 0:
-            avg_fpl = (fuel_start - float(stream['FuelLevel'] or 0.0)) / max(stream['CarIdxLapCompleted'][me_idx] - last_pit_lap, 1)
+        if stream['LapCompleted'] > 0:
+            avg_fpl = (fuel_start - float(stream['FuelLevel'] or 0.0)) / max(stint_l + 1, 1)
         else:
             avg_fpl = 0
             
-        lf = float(stream['FuelLevel'] or 0.0) / max(avg_fpl, 1)
+        lf = float(stream['FuelLevel'] or 0.0) / last_fpl
         
         return {
             'stint_avg_pace': min(float(stream['LapCurrentLapTime'] or 0.0), stint_total_time / max(stint_l, 0.000000001)),
-            'race_avg_pace': total_time / int(stream['CarIdxLap'][me_idx] or 1),
-            'laps_completed': int(stream['CarIdxLapCompleted'][me_idx] or 1),
+            'race_avg_pace': total_time / int(stream['Lap'] or 1),
+            'laps_completed': int(stream['LapCompleted'] or 1),
             'avg_laps_per_stint': avg_lps,
             'stints_completed': stint_n,
             'avg_fuel_per_lap': max(round(avg_fpl, 1), 1),
@@ -278,6 +289,7 @@ def start_stream(interrupt_act=None):
     global fuel_start
     global last_pit_lap
     global cars
+    global last_fpl
     global stint_n
     
     stream_running = True
@@ -309,6 +321,10 @@ def start_stream(interrupt_act=None):
             if prev_frame and prev_frame['lap_times']['lap'] < frame['lap_times']['lap']:
                 stint_total_time += frame['lap_times']['lap_last_lap_time']
                 total_time += frame['lap_times']['lap_last_lap_time']
+                stint_l += 1
+                last_fpl = frame['strat_box']['avg_fuel_per_lap']
+            else:
+                frame['strat_box']['avg_fuel_per_lap'] = None
                 
             if (frame['consumables']['pit_status']):
                 if (pit_status):
@@ -317,10 +333,10 @@ def start_stream(interrupt_act=None):
                     stint_l = 0
                     stint_n += 1
                     pit_status = True
-                    fuel_start = frame['consumables']['fuel_level']
+                    fuel_start = float(frame['consumables']['fuel_level'] or 0.0)
                     stop_times.append(curr_stop_time)
                     curr_stop_time = 0
-                    last_pit_lap = frame['lap_times']['lap']
+                    last_pit_lap = int(frame['lap_times']['lap'] or 1)
                     
             else:
                 pit_status = False

@@ -73,7 +73,7 @@ class UpdateManager {
             throttleFill: document.getElementById('throttle-fill'),
             brakeFill: document.getElementById('brake-fill'),
             clutchFill: document.getElementById('clutch-fill'),
-            meterIndicator: document.getElementById('meter-indicator'),
+            meterIndicator: document.getElementById('steering-bar'),
             fuel: document.getElementById('fuel'),
             avgUseLap: document.getElementById('avg-use-lap'),
             fuelLaps: document.getElementById('fuel-laps'),
@@ -262,7 +262,7 @@ class UpdateManager {
                 if (rpm >= dt.first_light && rpm < dt.last_light) state = this.getStateColor('FIRSTLIGHT');
                 else if (rpm >= dt.last_light && rpm < dt.blink_light) state = this.getStateColor('LASTLIGHT');
                 else if (rpm >= dt.blink_light) state = this.getStateColor('BLINKLIGHT');
-
+                else state = this.getStateColor('CLEAR');
                 if (el.rpm) el.rpm.style.borderColor = state;
             }
 
@@ -280,8 +280,7 @@ class UpdateManager {
                 this.updateLineChart(throttle, brake, clutch);
 
                 if (el.meterIndicator) {
-                    const steeringAngleDeg = bf.steeringAngle * (180 / Math.PI);
-                    const steeringPercent = (steeringAngleDeg / 360) * 100;
+                    const steeringPercent = (bf.steeringAngle / bf.maxSteeringAngle) * 100;
                     const clamped = Math.max(-50, Math.min(50, steeringPercent));
                     el.meterIndicator.style.left = `${50 + clamped}%`;
                 }
@@ -299,8 +298,8 @@ class UpdateManager {
                 if (el.stintAvgPace) el.stintAvgPace.textContent = this.formatTime(sb.stint_avg_pace) || '--:--.---';
                 if (el.pitLoss) el.pitLoss.textContent = this.formatTime(sb.avg_stop_time) || '--:--.---';
                 if (el.raceAvgPace) el.raceAvgPace.textContent = this.formatTime(sb.race_avg_pace) || '--:--.---';
-                if (el.fuelLaps) el.fuelLaps.textContent = sb.laps_fuel || '--';
-                if (el.avgUseLap) el.avgUseLap.textContent = sb.avg_fuel_per_lap || '--';
+                if (el.fuelLaps && sb.laps_fuel) el.fuelLaps.textContent = sb.laps_fuel || '--';
+                if (el.avgUseLap && sb.avg_fuel_per_lap) el.avgUseLap.textContent = sb.avg_fuel_per_lap || '--';
                 if (el.stintsCompleted) el.stintsCompleted.textContent = sb.stints_completed || '--';
                 if (el.lapsPerStint) el.lapsPerStint.textContent = sb.avg_laps_per_stint || '--';
             }
