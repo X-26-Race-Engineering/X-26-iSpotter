@@ -94,30 +94,27 @@ REM Create the run script with better error handling
 (
 echo @echo off
 echo title X-26 iSpotter - iRacing Telemetry
-echo cd /d "%%~dp0"
+echo cd /d "%~dp0"
 echo.
 echo echo ============================================================
-echo echo X-26 iSpotter - iRacing Telemetry Dashboard
+echo echo  X-26 iSpotter - iRacing Telemetry Dashboard
 echo echo ============================================================
 echo.
-echo echo Starting telemetry server...
-echo echo The dashboard will be available at: http://localhost:5000
+echo echo  Starting Flask telemetry server...
+echo start /b python app.py
 echo.
-echo echo Press Ctrl+C to stop the server
+echo echo  Waiting for Flask to be ready...
+echo timeout /t 3 /nobreak >nul
+echo.
+echo echo  Launching Electron dashboard...
+echo echo ============================================================
+echo npx electron .
 echo.
 echo echo ============================================================
-echo.
-echo start http://localhost:5000
-echo.
-echo python app.py
-echo.
-echo if errorlevel 1 (
-echo     echo.
-echo     echo ERROR: Failed to start the server!
-echo     echo Please check that Python and all dependencies are installed.
-echo     echo.
-echo     pause
-echo ^)
+echo echo  Electron closed, stopping Flask server...
+echo taskkill /f /im python.exe >nul 2>&1
+echo echo  Shutdown complete.
+echo echo ============================================================
 ) > run_telemetry.bat
 
 echo.
