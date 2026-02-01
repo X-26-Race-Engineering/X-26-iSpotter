@@ -72,9 +72,9 @@ def telemetry_broadcaster():
             stream_state.last_iracing_status = current_iracing_status
             
             if current_iracing_status:
-                print("✓ iRacing connected!")
+                print(" iRacing connected!")
             else:
-                print("✗ iRacing disconnected")
+                print(" iRacing disconnected")
             
             # Broadcast connection status change immediately
             socketio.emit('iracing_status', {
@@ -195,7 +195,7 @@ def start_telemetry_stream():
             name="TelemetryCollector"
         )
         stream_state.telemetry_thread.start()
-        print("✓ Telemetry collection thread started")
+        print("Telemetry collection thread started")
         
         # Give it a moment to initialize
         time.sleep(0.5)
@@ -208,7 +208,7 @@ def start_telemetry_stream():
             name="TelemetryBroadcaster"
         )
         stream_state.broadcaster_thread.start()
-        print("✓ 60Hz broadcaster thread started")
+        print(" 60Hz broadcaster thread started")
         
         stream_state.is_running = True
         
@@ -231,7 +231,7 @@ def start_telemetry_stream():
         }), 200
         
     except Exception as e:
-        print(f"✗ Error starting stream: {e}")
+        print(f" Error starting stream: {e}")
         import traceback
         traceback.print_exc()
         return jsonify({
@@ -255,11 +255,11 @@ def stop_telemetry_stream():
         
         # Stop broadcaster first
         stream_state.broadcaster_active = False
-        print("✓ Broadcaster stopped")
+        print(" Broadcaster stopped")
         
         # Stop telemetry collection
         stop_stream()
-        print("✓ Telemetry collection stopped")
+        print(" Telemetry collection stopped")
         
         stream_state.is_running = False
         
@@ -282,7 +282,7 @@ def stop_telemetry_stream():
         }), 200
         
     except Exception as e:
-        print(f"✗ Error stopping stream: {e}")
+        print(f" Error stopping stream: {e}")
         import traceback
         traceback.print_exc()
         return jsonify({
@@ -309,7 +309,7 @@ def stream_status():
 @socketio.on('connect')
 def handle_connect():
     """Client connected"""
-    print(f"✓ Client connected")
+    print(f"Client connected")
     
     # Send current stream status to new client
     iracing_connected = get_connection_status()
@@ -326,7 +326,7 @@ def handle_connect():
 @socketio.on('disconnect')
 def handle_disconnect():
     """Client disconnected"""
-    print(f"✗ Client disconnected")
+    print(f"Client disconnected")
 
 @socketio.on('request_status')
 def handle_status_request():

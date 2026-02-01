@@ -53,7 +53,10 @@ python -m pip install --upgrade pip
 
 REM Install packages one by one to better handle errors
 echo Installing packages
+
 python -m pip install -r requirements.txt
+npm install electron --save-dev
+
 if errorlevel 1 goto :install_error
 
 echo.

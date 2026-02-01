@@ -1,0 +1,13 @@
+{
+    "name": "ispotter-dashboard",
+    "version": "1.0.0",
+    "main": "main.js",
+    "scripts": {
+        "start": "electron .",
+        "launch": "concurrently --kill-others \"python app.py\" \"npm start\""
+    },
+    "devDependencies": {
+        "concurrently": "^9.0.0",
+        "electron": "^33.4.11"
+    }
+}
