@@ -18,7 +18,7 @@ stop_requested = False
 stop_times = []
 curr_stop_time = 0.0
 session = {}
-ids = []
+cars = []
 stint_total_time = 0.0
 total_time = 0.0
 stint_n = 0
@@ -49,6 +49,10 @@ class stream_handlers:
         me_idx = int(stream['PlayerCarIdx'] or 1)
         me_pos = int(stream['CarIdxPosition'][me_idx] or 1)
         me_class_pos = int(stream['CarIdxClassPosition'][me_idx] or 1)
+
+        if cars == None or cars == []:
+            return {'curr_position': me_pos,
+            'curr_class_position': me_class_pos}
         
         for i in range(len(cars)):
             cars[i]['Position'] = int(stream['CarIdxPosition'][cars[i]['CarIdx']] or 1)
@@ -63,7 +67,7 @@ class stream_handlers:
         return {
             'curr_position': me_pos,
             'curr_class_position': me_class_pos,
-            'cars_by_pos': json.dumps(pos_cars),
+            'cars_by_pos': pos_cars,
             'cars_by_rel': None
         }
 
@@ -75,7 +79,7 @@ class stream_handlers:
         
         current_lap_time = float(stream['LapCurrentLapTime'] or 0.0)
         best_lap_time = float(stream['CarIdxBestLapTime'][me_idx] or np.inf)
-        lap_pct = float(stream['CarIdxLapDistPct'] or 0.0)
+        lap_pct = float(stream['CarIdxLapDistPct'][me_idx] or 0.0)
                 
         NUM_SECTORS = 10  # Easy to change: 4, 9, 16, etc.
         current_sector = int((lap_pct * 100) // (100 / NUM_SECTORS))  # 0-9 for 10 sectors
@@ -129,7 +133,7 @@ class stream_handlers:
         }
         
     @staticmethod
-    def get_hotbox(stream, session):
+    def get_hotbox(stream):
         me_idx = int(stream['PlayerCarIdx'] or 1)
         
         if stint_n > 1:
@@ -138,21 +142,21 @@ class stream_handlers:
             avg_lps = 0
             
         if stream['CarIdxLapCompleted'][me_idx] > 0:
-            avg_fpl = (fuel_start - stream['FuelLevel']) / max(stream['CarIdxLapCompleted'][me_idx] - last_pit_lap, 0.0000000000001)
+            avg_fpl = (fuel_start - float(stream['FuelLevel'] or 0.0)) / max(stream['CarIdxLapCompleted'][me_idx] - last_pit_lap, 1)
         else:
             avg_fpl = 0
             
-        lf = stream['FuelLevel'] / max(avg_fpl, 0.00000000000001)
+        lf = float(stream['FuelLevel'] or 0.0) / max(avg_fpl, 1)
         
         return {
-            'stint_avg_pace': stint_total_time / stint_l,
+            'stint_avg_pace': min(float(stream['LapCurrentLapTime'] or 0.0), stint_total_time / max(stint_l, 0.000000001)),
             'race_avg_pace': total_time / int(stream['CarIdxLap'][me_idx] or 1),
             'laps_completed': int(stream['CarIdxLapCompleted'][me_idx] or 1),
             'avg_laps_per_stint': avg_lps,
             'stints_completed': stint_n,
-            'avg_fuel_per_lap': max(round(avg_fpl, 1), 100),
-            'laps_fuel': max(round(lf, 1), 1000),
-            'avg_stop_time': sum(stop_times) / len(stop_times),
+            'avg_fuel_per_lap': max(round(avg_fpl, 1), 1),
+            'laps_fuel': max(round(lf, 1), 1),
+            'avg_stop_time': sum(stop_times) / max(1, len(stop_times)),
             'curr_stop_time': curr_stop_time
         }
     
@@ -193,15 +197,27 @@ def check_iracing(state, ir):
         connect_status = True
         print('iRacing connected!')
 
+def get_connection_status():
+    """
+    Get current iRacing connection status
+    Thread-safe access to global connection state
+    Wrapper for above method
+    
+    Returns:
+        bool: True if connected to iRacing, False otherwise
+    """
+    global connect_status
+    return connect_status
+
 
 def loop(ir):
     """
     Main telemetry loop - reads and parses data from iRacing
     """
-    global ids
+    global cars
     
     ir.freeze_var_buffer_latest()
-    frame = stream_handlers.parse_all(ir, ids)
+    frame = stream_handlers.parse_all(ir, cars)
     return frame
 
 def get_all_info(ir):
@@ -211,8 +227,8 @@ def get_all_info(ir):
     global session_info
     global ids
     
-    session_info = sip.get_all(ir)
-    ids = session_info['cars_in_class']
+    #session_info = sip.get_all(ir)
+    #cars = session_info['all_cars']
 
 def stop_stream():
     """
@@ -260,12 +276,17 @@ def start_stream(interrupt_act=None):
     global total_time
     global pit_status
     global fuel_start
+    global last_pit_lap
+    global cars
+    global stint_n
     
     stream_running = True
     ir_instance = irsdk.IRSDK()
     state = State()
     
     keyboard.add_hotkey("ctrl+shift+s", on_hotkey)
+
+    #cars = sip.get_all_cars(ir_instance)
 
     while stream_running and not stop_requested:
         check_iracing(state, ir_instance)
@@ -285,7 +306,7 @@ def start_stream(interrupt_act=None):
             frame['connection'] = connect_status
             frame['stint_lap'] = stint_l
             
-            if prev_frame['lap_times']['lap'] < frame['lap_times']['lap']:
+            if prev_frame and prev_frame['lap_times']['lap'] < frame['lap_times']['lap']:
                 stint_total_time += frame['lap_times']['lap_last_lap_time']
                 total_time += frame['lap_times']['lap_last_lap_time']
                 
@@ -299,6 +320,7 @@ def start_stream(interrupt_act=None):
                     fuel_start = frame['consumables']['fuel_level']
                     stop_times.append(curr_stop_time)
                     curr_stop_time = 0
+                    last_pit_lap = frame['lap_times']['lap']
                     
             else:
                 pit_status = False

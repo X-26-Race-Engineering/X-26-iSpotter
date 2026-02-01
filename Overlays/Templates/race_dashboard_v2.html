@@ -230,131 +230,62 @@
 
     </div>
 
-    <script src="../Scripts/updateRaceDashboard.js">
-        // ==================== FULLSCREEN / FRAMELESS MODE ====================
-        
-        const fullscreenBtn = document.getElementById('fullscreen-btn');
-        const dashboard = document.documentElement;
+    <!-- Load external UpdateManager script -->
+<script src="/Scripts/updateRaceDashboardV2.js"></script>
 
-        // Toggle fullscreen function
-        function toggleFullscreen() {
-            if (!document.fullscreenElement) {
-                // Enter fullscreen
-                dashboard.requestFullscreen().catch(err => {
-                    console.log(`Error attempting to enable fullscreen: ${err.message}`);
-                });
-            } else {
-                // Exit fullscreen
-                document.exitFullscreen();
-            }
+<script>
+    console.log('Script loaded, typeof UpdateManager:', typeof UpdateManager);
+    
+    // ==================== FULLSCREEN / FRAMELESS MODE ====================
+    
+    const fullscreenBtn = document.getElementById('fullscreen-btn');
+    const dashboard = document.documentElement;
+
+    function toggleFullscreen() {
+        if (!document.fullscreenElement) {
+            dashboard.requestFullscreen().catch(err => {
+                console.log(`Error attempting to enable fullscreen: ${err.message}`);
+            });
+        } else {
+            document.exitFullscreen();
         }
+    }
 
-        // Button click handler
+    if (fullscreenBtn) {
         fullscreenBtn.addEventListener('click', toggleFullscreen);
+    } else {
+        console.error('Fullscreen button not found');
+    }
 
-        // Keyboard shortcut: F11
-        document.addEventListener('keydown', (e) => {
-            if (e.key === 'F11') {
-                e.preventDefault();
-                toggleFullscreen();
-            }
-        });
-
-        // Update button visibility based on fullscreen state
-        document.addEventListener('fullscreenchange', () => {
-            if (document.fullscreenElement) {
-                fullscreenBtn.classList.add('in-fullscreen');
-                fullscreenBtn.title = 'Exit Fullscreen (F11 or ESC)';
-            } else {
-                fullscreenBtn.classList.remove('in-fullscreen');
-                fullscreenBtn.title = 'Toggle Fullscreen (F11)';
-            }
-        });
-
-        // Auto-enter fullscreen on load (optional - comment out if not desired)
-        // window.addEventListener('load', () => {
-        //     setTimeout(() => toggleFullscreen(), 500);
-        // });
-
-        // ====================== STREAM HANDLING ======================
-
-        // Stream control functions
-        let streamActive = false;
-
-        const updateManager = new updateManager('http://localhost:5000');
-
-        // Start stream button handler
-        document.getElementById('start-stream-btn').addEventListener('click', async () => {
-            try {
-                const response = await fetch('/api/stream/start', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    }
-                });
-                
-                const data = await response.json();
-                console.log('Start stream response:', data);
-                
-                if (data.status === 'success' || data.status === 'already_running') {
-                    updateStreamStatus(true);
-                    updateManager.connect();
-                }
-            } catch (error) {
-                console.error('Error starting stream:', error);
-                alert('Failed to start stream: ' + error.message);
-            }
-        });
-
-        // Stop stream button handler
-        document.getElementById('stop-stream-btn').addEventListener('click', async () => {
-            try {
-                const response = await fetch('/api/stream/stop', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    }
-                });
-                
-                const data = await response.json();
-                console.log('Stop stream response:', data);
-                
-                if (data.status === 'success' || data.status === 'not_running') {
-                    updateStreamStatus(false);
-                }
-            } catch (error) {
-                console.error('Error stopping stream:', error);
-                alert('Failed to stop stream: ' + error.message);
-            }
-        });
-
-        // Update UI based on stream status
-        function updateStreamStatus(isActive) {
-            streamActive = isActive;
-            const statusText = document.getElementById('status-text');
-            const startBtn = document.getElementById('start-stream-btn');
-            const stopBtn = document.getElementById('stop-stream-btn');
-            
-            if (isActive) {
-                statusText.textContent = 'Active';
-                statusText.style.color = '#00ff00';
-                startBtn.disabled = true;
-                startBtn.style.opacity = '0.5';
-                stopBtn.disabled = false;
-                stopBtn.style.opacity = '1';
-            } else {
-                statusText.textContent = 'Inactive';
-                statusText.style.color = '#ff0000';
-                startBtn.disabled = false;
-                startBtn.style.opacity = '1';
-                stopBtn.disabled = true;
-                stopBtn.style.opacity = '0.5';
-            }
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'F11') {
+            e.preventDefault();
+            toggleFullscreen();
         }
+    });
 
-        // Update iRacing connection status
-        function updateIRacingStatus(isConnected) {
-            const iracingStatus = document.getElementById('iracing-status');
+    document.addEventListener('fullscreenchange', () => {
+        if (document.fullscreenElement) {
+            fullscreenBtn.classList.add('in-fullscreen');
+            fullscreenBtn.title = 'Exit Fullscreen (F11 or ESC)';
+        } else {
+            fullscreenBtn.classList.remove('in-fullscreen');
+            fullscreenBtn.title = 'Toggle Fullscreen (F11)';
+        }
+    });
+
+    // ====================== STREAM HANDLING ======================
+
+    console.log('Setting up stream handling...');
+
+    let streamActive = false;
+    let updateManager = null;
+
+    // Update iRacing connection status
+    function updateIRacingStatus(isConnected) {
+        console.log('updateIRacingStatus called with:', isConnected);
+        const iracingStatus = document.getElementById('iracing-status');
+        if (iracingStatus) {
             if (isConnected) {
                 iracingStatus.textContent = 'Connected';
                 iracingStatus.style.color = '#00ff00';
@@ -362,31 +293,173 @@
                 iracingStatus.textContent = 'Disconnected';
                 iracingStatus.style.color = '#ff0000';
             }
+        } else {
+            console.error('iracing-status element not found');
         }
+    }
 
-        // Listen for stream status updates from server
-        socket.on('stream_status', (data) => {
-            console.log('Stream status update:', data);
-            updateStreamStatus(data.status === 'started');
-        });
+    // Update UI based on stream status
+    function updateStreamStatus(isActive) {
+        console.log('updateStreamStatus called with:', isActive);
+        streamActive = isActive;
+        const statusText = document.getElementById('status-text');
+        const startBtn = document.getElementById('start-stream-btn');
+        const stopBtn = document.getElementById('stop-stream-btn');
+        
+        if (!statusText || !startBtn || !stopBtn) {
+            console.error('Status elements not found:', {statusText, startBtn, stopBtn});
+            return;
+        }
+        
+        if (isActive) {
+            statusText.textContent = 'Active';
+            statusText.style.color = '#00ff00';
+            startBtn.disabled = true;
+            startBtn.style.opacity = '0.5';
+            stopBtn.disabled = false;
+            stopBtn.style.opacity = '1';
+        } else {
+            statusText.textContent = 'Inactive';
+            statusText.style.color = '#ff0000';
+            startBtn.disabled = false;
+            startBtn.style.opacity = '1';
+            stopBtn.disabled = true;
+            stopBtn.style.opacity = '0.5';
+        }
+    }
 
-        // Check initial stream status
-        async function checkStreamStatus() {
+    // Initialize UpdateManager
+    try {
+        updateManager = new UpdateManager('http://localhost:5000');
+        console.log('UpdateManager initialized successfully');
+    } catch (error) {
+        console.error('Failed to initialize UpdateManager:', error);
+    }
+
+    // Start stream button handler
+    const startBtn = document.getElementById('start-stream-btn');
+    if (startBtn) {
+        console.log('Start button found, attaching click handler');
+        
+        startBtn.addEventListener('click', async (e) => {
+            console.log('Start button CLICKED!');
+            e.preventDefault(); // Prevent any default behavior
+            
             try {
-                const response = await fetch('/api/stream/status');
+                console.log('Sending POST request to /api/stream/start');
+                
+                const response = await fetch('/api/stream/start', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                console.log('Response status:', response.status);
+                
                 const data = await response.json();
-                updateStreamStatus(data.is_running);
-                if (data.iracing_connected !== undefined) {
-                    updateIRacingStatus(data.iracing_connected);
+                console.log('Start stream response:', data);
+                
+                if (data.status === 'success' || data.status === 'already_running') {
+                    updateStreamStatus(true);
+                    
+                    // Update iRacing status from response
+                    if (data.iracing_connected !== undefined) {
+                        updateIRacingStatus(data.iracing_connected);
+                    }
+                    
+                    // Connect UpdateManager to start receiving frames
+                    if (updateManager) {
+                        console.log('Connecting UpdateManager...');
+                        updateManager.connect();
+                    }
+                } else {
+                    alert('Failed to start stream: ' + data.message);
                 }
             } catch (error) {
-                console.error('Error checking stream status:', error);
+                console.error('Error starting stream:', error);
+                alert('Failed to start stream: ' + error.message);
             }
+        });
+    } else {
+        console.error('START BUTTON NOT FOUND! Check your HTML for id="start-stream-btn"');
+    }
+
+    // Stop stream button handler
+    const stopBtn = document.getElementById('stop-stream-btn');
+    if (stopBtn) {
+        console.log('Stop button found, attaching click handler');
+        
+        stopBtn.addEventListener('click', async (e) => {
+            console.log('Stop button CLICKED!');
+            e.preventDefault();
+            
+            try {
+                console.log('Sending POST request to /api/stream/stop');
+                
+                const response = await fetch('/api/stream/stop', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                console.log('Response status:', response.status);
+                
+                const data = await response.json();
+                console.log('Stop stream response:', data);
+                
+                if (data.status === 'success' || data.status === 'not_running') {
+                    updateStreamStatus(false);
+                    updateIRacingStatus(false);
+                    if (updateManager) {
+                        updateManager.disconnect();
+                    }
+                } else {
+                    alert('Failed to stop stream: ' + data.message);
+                }
+            } catch (error) {
+                console.error('Error stopping stream:', error);
+                alert('Failed to stop stream: ' + error.message);
+            }
+        });
+    } else {
+        console.error('STOP BUTTON NOT FOUND! Check your HTML for id="stop-stream-btn"');
+    }
+
+    // Check initial stream status
+    async function checkStreamStatus() {
+        console.log('Checking initial stream status...');
+        try {
+            const response = await fetch('/api/stream/status');
+            const data = await response.json();
+            console.log('Initial status:', data);
+            
+            updateStreamStatus(data.is_running);
+            
+            if (data.iracing_connected !== undefined) {
+                updateIRacingStatus(data.iracing_connected);
+            }
+            
+            // If stream is already running, connect UpdateManager
+            if (data.is_running && updateManager) {
+                console.log('Stream already running, connecting UpdateManager...');
+                updateManager.connect();
+            }
+        } catch (error) {
+            console.error('Error checking stream status:', error);
         }
+    }
 
-        // Check status on page load
-        checkStreamStatus();
+    // Periodic status check (fallback if WebSocket updates fail)
+    setInterval(checkStreamStatus, 5000);
 
-    </script>
+    // Check status on page load
+    console.log('Page loaded, checking stream status...');
+    checkStreamStatus();
+
+    console.log('All event handlers attached successfully');
+
+</script>
 </body>
 </html>
