@@ -86,7 +86,8 @@ class UpdateManager {
             lapsRemaining: document.getElementById('laps-remaining'),
             timeRemaining: document.getElementById('time-remaining'),
             iracingStatus: document.getElementById('iracing-status'),
-            statusText: document.getElementById('status-text')
+            statusText: document.getElementById('status-text'),
+            driverMarkers: document.getElementById('driver-markers')
         };
     }
 
@@ -167,6 +168,306 @@ class UpdateManager {
         return `${mins}:${secs.padStart(6, '0')}`;
     }
 
+    // ==================== CIRCLE OF DOOM ====================
+
+    /**
+     * Converts a lap distance percentage (0.0 - 1.0) to x,y coordinates
+     * on the circle. 0.0 = top (12 o'clock), increasing clockwise.
+     */
+    lapDistToXY(lapDistPct, radius = 180) {
+        const cx = 200;
+        const cy = 200;
+        const angle = (lapDistPct * 2 * Math.PI) - (Math.PI / 2);
+        return {
+            x: cx + radius * Math.cos(angle),
+            y: cy + radius * Math.sin(angle)
+        };
+    }
+
+    /**
+     * Creates or updates a single driver marker on the circle.
+     * Creates on first call for a given id, then just moves it on subsequent calls.
+     */
+    updateDriverMarker(id, lapDistPct, name, lap, position, classPosition, refLap) {
+        if (!this.el.driverMarkers) return;
+
+        let marker = document.getElementById(id);
+
+        let color = '#ffffff';
+            if (lap > refLap) {
+                color = '#ff0000';
+            }
+            if (lap < refLap) {
+                color = '#00f7ff';
+            }
+
+        if (!marker) {
+            marker = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+            marker.setAttribute('id', id);
+
+            const dot = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+            dot.setAttribute('class', 'marker-dot');
+            dot.setAttribute('r', '6');
+            dot.setAttribute('fill', '#ffffff');
+            dot.setAttribute('stroke', color);
+            dot.setAttribute('stroke-width', '2');
+
+            const badge = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+            badge.setAttribute('class', 'marker-badge');
+            badge.setAttribute('r', '10');
+            badge.setAttribute('fill', '#31333f');
+            badge.setAttribute('stroke', '#ffffff');
+            badge.setAttribute('stroke-width', '1.5');
+
+            const posText = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+            posText.setAttribute('class', 'marker-pos-text');
+            posText.setAttribute('text-anchor', 'middle');
+            posText.setAttribute('dominant-baseline', 'central');
+            posText.setAttribute('fill', color);
+            posText.setAttribute('font-size', '9');
+            posText.setAttribute('font-family', 'Arial');
+
+            const tooltip = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+            tooltip.setAttribute('class', 'marker-tooltip');
+            tooltip.setAttribute('visibility', 'hidden');
+
+            const tooltipBg = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+            tooltipBg.setAttribute('width', '90');
+            tooltipBg.setAttribute('height', '52');
+            tooltipBg.setAttribute('rx', '4');
+            tooltipBg.setAttribute('fill', '#1e2035');
+            tooltipBg.setAttribute('stroke', '#ffffff');
+            tooltipBg.setAttribute('stroke-width', '1');
+
+            const tooltipName = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+            tooltipName.setAttribute('class', 'marker-tooltip-name');
+            tooltipName.setAttribute('font-size', '8');
+            tooltipName.setAttribute('font-family', 'Arial');
+            tooltipName.setAttribute('font-weight', 'bold');
+            tooltipName.setAttribute('fill', '#ffffff');
+
+            const tooltipLap = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+            tooltipLap.setAttribute('class', 'marker-tooltip-lap');
+            tooltipLap.setAttribute('font-size', '7');
+            tooltipLap.setAttribute('font-family', 'Arial');
+            tooltipLap.setAttribute('fill', '#999999');
+
+            const tooltipPos = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+            tooltipPos.setAttribute('class', 'marker-tooltip-pos');
+            tooltipPos.setAttribute('font-size', '7');
+            tooltipPos.setAttribute('font-family', 'Arial');
+            tooltipPos.setAttribute('fill', '#999999');
+
+            const tooltipClassPos = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+            tooltipClassPos.setAttribute('class', 'marker-tooltip-classpos');
+            tooltipClassPos.setAttribute('font-size', '7');
+            tooltipClassPos.setAttribute('font-family', 'Arial');
+            tooltipClassPos.setAttribute('fill', '#999999');
+
+            tooltip.appendChild(tooltipBg);
+            tooltip.appendChild(tooltipName);
+            tooltip.appendChild(tooltipLap);
+            tooltip.appendChild(tooltipPos);
+            tooltip.appendChild(tooltipClassPos);
+
+            marker.appendChild(dot);
+            marker.appendChild(badge);
+            marker.appendChild(posText);
+            marker.appendChild(tooltip);
+
+            marker.addEventListener('mouseenter', () => {
+                tooltip.setAttribute('visibility', 'visible');
+            });
+            marker.addEventListener('mouseleave', () => {
+                tooltip.setAttribute('visibility', 'hidden');
+            });
+
+            this.el.driverMarkers.appendChild(marker);
+        }
+
+        // Update positions
+        const dotPos = this.lapDistToXY(lapDistPct, 180);
+        marker.querySelector('.marker-dot').setAttribute('cx', dotPos.x);
+        marker.querySelector('.marker-dot').setAttribute('cy', dotPos.y);
+
+        const badgePos = this.lapDistToXY(lapDistPct, 200);
+        marker.querySelector('.marker-badge').setAttribute('cx', badgePos.x);
+        marker.querySelector('.marker-badge').setAttribute('cy', badgePos.y);
+
+        const posTextEl = marker.querySelector('.marker-pos-text');
+        posTextEl.setAttribute('x', badgePos.x);
+        posTextEl.setAttribute('y', badgePos.y);
+        posTextEl.textContent = position;
+
+        const tooltipAnchor = this.lapDistToXY(lapDistPct, 230);
+        const tooltip = marker.querySelector('.marker-tooltip');
+        tooltip.setAttribute('transform', `translate(${tooltipAnchor.x - 45}, ${tooltipAnchor.y - 26})`);
+
+        marker.querySelector('.marker-tooltip-name').setAttribute('x', 6);
+        marker.querySelector('.marker-tooltip-name').setAttribute('y', 12);
+        marker.querySelector('.marker-tooltip-name').textContent = name;
+
+        marker.querySelector('.marker-tooltip-lap').setAttribute('x', 6);
+        marker.querySelector('.marker-tooltip-lap').setAttribute('y', 24);
+        marker.querySelector('.marker-tooltip-lap').textContent = `Lap: ${lap}`;
+
+        marker.querySelector('.marker-tooltip-pos').setAttribute('x', 6);
+        marker.querySelector('.marker-tooltip-pos').setAttribute('y', 35);
+        marker.querySelector('.marker-tooltip-pos').textContent = `Pos: P${position}`;
+
+        marker.querySelector('.marker-tooltip-classpos').setAttribute('x', 6);
+        marker.querySelector('.marker-tooltip-classpos').setAttribute('y', 46);
+        marker.querySelector('.marker-tooltip-classpos').textContent = `Class: P${classPosition}`;
+    }
+
+    /**
+     * Updates the player's own marker. Visually distinct (green, larger),
+     * always renders on top. No car_idx dependency.
+     */
+    updatePlayerMarker(lapDistPct, name, lap, position, classPosition) {
+        const id = 'driver_player';
+        if (!this.el.driverMarkers) return;
+
+        let marker = document.getElementById(id);
+
+        if (!marker) {
+            marker = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+            marker.setAttribute('id', id);
+
+            const dot = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+            dot.setAttribute('class', 'marker-dot');
+            dot.setAttribute('r', '8');
+            dot.setAttribute('fill', '#00ff00');
+            dot.setAttribute('stroke', '#0d0f1d');
+            dot.setAttribute('stroke-width', '2.5');
+
+            const badge = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+            badge.setAttribute('class', 'marker-badge');
+            badge.setAttribute('r', '12');
+            badge.setAttribute('fill', '#00cc00');
+            badge.setAttribute('stroke', '#ffffff');
+            badge.setAttribute('stroke-width', '2');
+
+            const posText = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+            posText.setAttribute('class', 'marker-pos-text');
+            posText.setAttribute('text-anchor', 'middle');
+            posText.setAttribute('dominant-baseline', 'central');
+            posText.setAttribute('fill', '#ffffff');
+            posText.setAttribute('font-size', '10');
+            posText.setAttribute('font-weight', 'bold');
+            posText.setAttribute('font-family', 'Arial');
+
+            const tooltip = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+            tooltip.setAttribute('class', 'marker-tooltip');
+            tooltip.setAttribute('visibility', 'hidden');
+
+            const tooltipBg = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+            tooltipBg.setAttribute('width', '90');
+            tooltipBg.setAttribute('height', '52');
+            tooltipBg.setAttribute('rx', '4');
+            tooltipBg.setAttribute('fill', '#0a2a0a');
+            tooltipBg.setAttribute('stroke', '#00ff00');
+            tooltipBg.setAttribute('stroke-width', '1.5');
+
+            const tooltipName = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+            tooltipName.setAttribute('class', 'marker-tooltip-name');
+            tooltipName.setAttribute('font-size', '8');
+            tooltipName.setAttribute('font-family', 'Arial');
+            tooltipName.setAttribute('font-weight', 'bold');
+            tooltipName.setAttribute('fill', '#00ff00');
+
+            const tooltipLap = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+            tooltipLap.setAttribute('class', 'marker-tooltip-lap');
+            tooltipLap.setAttribute('font-size', '7');
+            tooltipLap.setAttribute('font-family', 'Arial');
+            tooltipLap.setAttribute('fill', '#999999');
+
+            const tooltipPos = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+            tooltipPos.setAttribute('class', 'marker-tooltip-pos');
+            tooltipPos.setAttribute('font-size', '7');
+            tooltipPos.setAttribute('font-family', 'Arial');
+            tooltipPos.setAttribute('fill', '#999999');
+
+            const tooltipClassPos = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+            tooltipClassPos.setAttribute('class', 'marker-tooltip-classpos');
+            tooltipClassPos.setAttribute('font-size', '7');
+            tooltipClassPos.setAttribute('font-family', 'Arial');
+            tooltipClassPos.setAttribute('fill', '#999999');
+
+            tooltip.appendChild(tooltipBg);
+            tooltip.appendChild(tooltipName);
+            tooltip.appendChild(tooltipLap);
+            tooltip.appendChild(tooltipPos);
+            tooltip.appendChild(tooltipClassPos);
+
+            marker.appendChild(dot);
+            marker.appendChild(badge);
+            marker.appendChild(posText);
+            marker.appendChild(tooltip);
+
+            marker.addEventListener('mouseenter', () => {
+                tooltip.setAttribute('visibility', 'visible');
+            });
+            marker.addEventListener('mouseleave', () => {
+                tooltip.setAttribute('visibility', 'hidden');
+            });
+
+            this.el.driverMarkers.appendChild(marker);
+        }
+
+        // Update positions
+        const dotPos = this.lapDistToXY(lapDistPct, 180);
+        marker.querySelector('.marker-dot').setAttribute('cx', dotPos.x);
+        marker.querySelector('.marker-dot').setAttribute('cy', dotPos.y);
+
+        const badgePos = this.lapDistToXY(lapDistPct, 200);
+        marker.querySelector('.marker-badge').setAttribute('cx', badgePos.x);
+        marker.querySelector('.marker-badge').setAttribute('cy', badgePos.y);
+
+        const posTextEl = marker.querySelector('.marker-pos-text');
+        posTextEl.setAttribute('x', badgePos.x);
+        posTextEl.setAttribute('y', badgePos.y);
+        posTextEl.textContent = position;
+
+        const tooltipAnchor = this.lapDistToXY(lapDistPct, 230);
+        const tooltip = marker.querySelector('.marker-tooltip');
+        tooltip.setAttribute('transform', `translate(${tooltipAnchor.x - 45}, ${tooltipAnchor.y - 26})`);
+
+        marker.querySelector('.marker-tooltip-name').setAttribute('x', 6);
+        marker.querySelector('.marker-tooltip-name').setAttribute('y', 12);
+        marker.querySelector('.marker-tooltip-name').textContent = name;
+
+        marker.querySelector('.marker-tooltip-lap').setAttribute('x', 6);
+        marker.querySelector('.marker-tooltip-lap').setAttribute('y', 24);
+        marker.querySelector('.marker-tooltip-lap').textContent = `Lap: ${lap}`;
+
+        marker.querySelector('.marker-tooltip-pos').setAttribute('x', 6);
+        marker.querySelector('.marker-tooltip-pos').setAttribute('y', 35);
+        marker.querySelector('.marker-tooltip-pos').textContent = `Pos: P${position}`;
+
+        marker.querySelector('.marker-tooltip-classpos').setAttribute('x', 6);
+        marker.querySelector('.marker-tooltip-classpos').setAttribute('y', 46);
+        marker.querySelector('.marker-tooltip-classpos').textContent = `Class: P${classPosition}`;
+
+        // Re-append so player marker always renders on top
+        this.el.driverMarkers.appendChild(marker);
+    }
+
+    /**
+     * Removes a marker by id
+     */
+    removeDriverMarker(id) {
+        const marker = document.getElementById(id);
+        if (marker) marker.remove();
+    }
+
+    /**
+     * Clears all markers from the circle
+     */
+    clearDriverMarkers() {
+        if (this.el.driverMarkers) this.el.driverMarkers.innerHTML = '';
+    }
+
     /**
      * Main entry point — called by the HTML socket handler every frame
      */
@@ -213,7 +514,7 @@ class UpdateManager {
                 }
 
                 // Sectors
-                const sector = lt.current_sector || 1;
+                const sector = lt.current_sector || 0;
                 const sectorEl = el[`ms${sector}`];
 
                 if (sectorEl) {
@@ -225,8 +526,8 @@ class UpdateManager {
                     else sectorEl.style.backgroundColor = '#ff0000';
                 }
 
-                if (sector === 1) {
-                    for (let i = 2; i <= 10; i++) {
+                if (sector === 0) {
+                    for (let i = 1; i <= 9; i++) {
                         const msEl = el[`ms${i}`];
                         if (msEl) {
                             msEl.style.fontSize = '10px';
@@ -310,6 +611,32 @@ class UpdateManager {
                 el.iracingStatus.style.color = data.connection ? '#00ff00' : '#ff0000';
             }
 
+            // Circle of Doom — other drivers
+            if (data.relative_timing?.drivers) {
+                data.relative_timing.drivers.forEach((driver) => {
+                    this.updateDriverMarker(
+                        'driver_' + driver.car_idx,
+                        driver.lap_dist_pct,
+                        driver.name,
+                        driver.lap,
+                        driver.position,
+                        driver.class_position,
+                        data.relative_timing.lap
+                    );
+                });
+            }
+
+            // Circle of Doom — player (separate values, no car_idx)
+            if (data.relative_timing.lap_dist !== undefined) {
+                this.updatePlayerMarker(
+                    data.relative_timing.lap_dist,
+                    'You',
+                    data.relative_timing.lap,
+                    data.relative_timing.curr_position,
+                    data.relative_timing.curr_class_position
+                );
+            }
+
         } catch (error) {
             console.error('Error in onFrame:', error);
         }
@@ -325,5 +652,6 @@ class UpdateManager {
         if (this.ctx && this.canvas) {
             this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
         }
+        this.clearDriverMarkers();
     }
 }
