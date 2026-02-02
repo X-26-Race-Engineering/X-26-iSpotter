@@ -3,9 +3,7 @@ import time
 import threading
 import numpy as np
 import keyboard
-import math
 from .sessionInfoParser import sessionInfoParsers as sip
-import json
 
 #Global vars
 frame = {}
@@ -26,8 +24,7 @@ stint_l = 0
 last_pit_lap = 0
 fuel_start = 0.0
 pit_status = False
-last_avg_fuel = 0.0
-last_fpl = 1
+last_fpl = 1.0
 
 class stream_handlers:
     
@@ -247,6 +244,39 @@ def stop_stream():
     """
     global stream_running
     global ir_instance
+    global frame
+    global prev_frame
+    global session
+    global stop_requested
+    global stint_l
+    global curr_stop_time
+    global stop_times
+    global stint_total_time
+    global total_time
+    global pit_status
+    global fuel_start
+    global last_pit_lap
+    global cars
+    global last_fpl
+    global stint_n
+    
+    frame = {}
+    prev_frame = {}
+    stream_running = False
+    ir_instance = None
+    stop_requested = False
+    stop_times = []
+    curr_stop_time = 0.0
+    session = {}
+    cars = []
+    stint_total_time = 0.0
+    total_time = 0.0
+    stint_n = 0
+    stint_l = 0
+    last_pit_lap = 0
+    fuel_start = 0.0
+    pit_status = False
+    last_fpl = 1
     
     stream_running = False
     if ir_instance:
@@ -337,7 +367,7 @@ def start_stream(interrupt_act=None):
                 pit_status = False
                 if curr_stop_time != 0:
                     stop_times.append(curr_stop_time)
-                    curr_stop_time = 0
+                    curr_stop_time = 0.0
                     fuel_start = float(frame['consumables']['fuel_level'] or 0.0)
                     last_pit_lap = int(frame['lap_times']['lap'] or 1)
                     
