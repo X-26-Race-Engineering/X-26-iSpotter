@@ -3,9 +3,7 @@ import time
 import threading
 import numpy as np
 import keyboard
-import math
 from .sessionInfoParser import sessionInfoParsers as sip
-import json
 
 #Global vars
 frame = {}
@@ -26,8 +24,7 @@ stint_l = 0
 last_pit_lap = 0
 fuel_start = 0.0
 pit_status = False
-last_avg_fuel = 0.0
-last_fpl = 1
+last_fpl = 1.0
 
 class stream_handlers:
     
@@ -37,9 +34,9 @@ class stream_handlers:
         me_idx = int(stream['PlayerCarIdx'] or 1)
         return {
             'velo': float(stream['Speed'] or 0.0) * 2.23694,
-            'brake': float(stream['Brake'] or 0.0),
-            'clutch': 1 - float(stream['Clutch'] or 0.0),
-            'throttle': float(stream['Throttle'] or 0.0),
+            'brake': float(stream['BrakeRaw'] or 0.0),
+            'clutch': 1 - float(stream['ClutchRaw'] or 0.0),
+            'throttle': float(stream['ThrottleRaw'] or 0.0),
             'steeringAngle': -float(stream['SteeringWheelAngle'] or 0.0),
             'maxSteeringAngle': float(stream['SteeringWheelAngleMax'] or 0.0)
         }
@@ -247,6 +244,39 @@ def stop_stream():
     """
     global stream_running
     global ir_instance
+    global frame
+    global prev_frame
+    global session
+    global stop_requested
+    global stint_l
+    global curr_stop_time
+    global stop_times
+    global stint_total_time
+    global total_time
+    global pit_status
+    global fuel_start
+    global last_pit_lap
+    global cars
+    global last_fpl
+    global stint_n
+    
+    frame = {}
+    prev_frame = {}
+    stream_running = False
+    ir_instance = None
+    stop_requested = False
+    stop_times = []
+    curr_stop_time = 0.0
+    session = {}
+    cars = []
+    stint_total_time = 0.0
+    total_time = 0.0
+    stint_n = 0
+    stint_l = 0
+    last_pit_lap = 0
+    fuel_start = 0.0
+    pit_status = False
+    last_fpl = 1
     
     stream_running = False
     if ir_instance:
@@ -298,8 +328,6 @@ def start_stream(interrupt_act=None):
     
     keyboard.add_hotkey("ctrl+shift+s", on_hotkey)
 
-    #cars = sip.get_all_cars(ir_instance)
-
     while stream_running and not stop_requested:
         check_iracing(state, ir_instance)
         
@@ -311,6 +339,9 @@ def start_stream(interrupt_act=None):
             if state.ir_connected:
                 if session == {}:
                     session = get_all_info(ir_instance)
+                if cars == []:
+                    #cars = sip.get_all_cars(ir_instance)
+                    pass
                     
                 prev_frame = frame.copy() if frame else {}
                 frame = loop(ir_instance)
@@ -323,8 +354,6 @@ def start_stream(interrupt_act=None):
                 total_time += frame['lap_times']['lap_last_lap_time']
                 stint_l += 1
                 last_fpl = frame['strat_box']['avg_fuel_per_lap']
-            else:
-                frame['strat_box']['avg_fuel_per_lap'] = None
                 
             if (frame['consumables']['pit_status']):
                 if (pit_status):
@@ -333,10 +362,12 @@ def start_stream(interrupt_act=None):
                     stint_l = 0
                     stint_n += 1
                     pit_status = True
-                    fuel_start = float(frame['consumables']['fuel_level'] or 0.0)
-                    stop_times.append(curr_stop_time)
-                    curr_stop_time = 0
-                    last_pit_lap = int(frame['lap_times']['lap'] or 1)
                     
             else:
                 pit_status = False
+                if curr_stop_time != 0:
+                    stop_times.append(curr_stop_time)
+                    curr_stop_time = 0.0
+                    fuel_start = float(frame['consumables']['fuel_level'] or 0.0)
+                    last_pit_lap = int(frame['lap_times']['lap'] or 1)
+                    
