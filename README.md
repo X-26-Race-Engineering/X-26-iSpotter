@@ -17,11 +17,9 @@
 <em>Built with the tools and technologies:</em>
 
 <img src="https://img.shields.io/badge/Flask-000000.svg?style=flat&logo=Flask&logoColor=white" alt="Flask">
-<img src="https://img.shields.io/badge/Polars-CD792C.svg?style=flat&logo=Polars&logoColor=white" alt="Polars">
 <img src="https://img.shields.io/badge/NumPy-013243.svg?style=flat&logo=NumPy&logoColor=white" alt="NumPy">
 <img src="https://img.shields.io/badge/Python-3776AB.svg?style=flat&logo=Python&logoColor=white" alt="Python">
 <img src="https://img.shields.io/badge/bat-31369E.svg?style=flat&logo=bat&logoColor=white" alt="bat">
-<img src="https://img.shields.io/badge/pandas-150458.svg?style=flat&logo=pandas&logoColor=white" alt="pandas">
 
 </div>
 <br>
@@ -60,12 +58,14 @@ This project simplifies the process of capturing, analyzing, and visualizing liv
 This project requires the following dependencies:
 
 - **Programming Language:** Python, JavaScript
-- **Package Manager:** Pip
+- **Package Manager:** Pip, Npm
 - **Manual install packages**: Node.js
 
 ### Installation
 
 You will need Python 3.8+ for the file, so before running the install script download a version from  [here](https://www.python.org/downloads/release/python-3129/)
+
+You will also need to install Node.js, which you can do from [here](https://nodejs.org/en/download)
 
 Build X-26-iSpotter from the source and install dependencies:
 
@@ -91,13 +91,14 @@ Build X-26-iSpotter from the source and install dependencies:
 
 ### Usage
 
-If install_telemetry executed correctly, a file called run_telemetry should be created, alongside a desktop shortcut that opens run_telemetry.
-You can use either the shortcut, a prompt at the end of install_telemetry, or the following command:
+Once install_telemetry executed correctly (you'll know if the file auto-closes), run the run_telemetry.bat file. An app icon and desktop shortcut will also be created for the dashboard.
+You can use either the shortcut or the following command:
 
 ```sh
 .\run_telemetry.bat
 ```
-<img width="947" height="481" alt="dashboard_screenshot" src="https://github.com/user-attachments/assets/5bf2bf7e-8e9a-4cdc-aaf6-7a19d29e3773" />
+<img width="2432" height="1191" alt="Screenshot 2026-02-03 014510" src="https://github.com/user-attachments/assets/ae497427-25d2-4229-ab72-78a6d1ae49a3" />
+
 
 ### Feedback
 
