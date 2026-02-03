@@ -1,0 +1,281 @@
+/* ==================== RESET ==================== */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+/* ==================== ROOT VARIABLES ==================== */
+:root {
+    /* Layout */
+    --nav-height: clamp(32px, 3.75vh, 45px);
+    --gap: clamp(4px, 0.5vh, 8px);
+    --border: 2px;
+    --border-radius: clamp(4px, 0.67vh, 8px);
+
+    /* Panel widths */
+    --left-panel-width: 20vw;
+    --min-left-panel-width: 260px;
+
+    /* Font sizes */
+    --font-label: clamp(7px, 0.75vw, 10px);
+    --font-value-large: clamp(24px, 2.5vw, 40px);
+    --font-value-medium: clamp(16px, 1.6vw, 22px);
+    --font-value-small: clamp(12px, 1.2vw, 16px);
+    --font-subtext: clamp(9px, 0.9vw, 12px);
+    --font-unit: clamp(8px, 0.8vw, 11px);
+    --font-chart-title: clamp(11px, 1.1vw, 14px);
+}
+
+body {
+    font-family: 'Arial', sans-serif;
+    background: #0d0f1d;
+    color: white;
+    overflow: hidden;
+}
+
+/* ==================== NAV ==================== */
+nav {
+    background: #0d0f1d;
+    height: var(--nav-height);
+    max-width: 100%;
+}
+
+ul {
+    height: 100%;
+    display: flex;
+    align-items: center;
+}
+
+li {
+    display: inline;
+    height: auto;
+    background: #31333f;
+    border-radius: 6px;
+    border: var(--border) solid #fff;
+    font-size: var(--font-subtext);
+    font-weight: bold;
+    padding: 0 8px;
+    white-space: nowrap;
+}
+
+a {
+    color: #FFFF;
+    text-decoration: None;
+}
+
+/* ==================== MAIN LAYOUT ==================== */
+.dashboard-container {
+    display: flex;
+    height: calc(100vh - var(--nav-height));
+    gap: var(--gap);
+    padding: var(--gap);
+    overflow: hidden;
+}
+
+/* ==================== LEFT PANEL ==================== */
+.left-panel {
+    width: var(--left-panel-width);
+    min-width: var(--min-left-panel-width);
+    display: flex;
+    flex-direction: column;
+    gap: var(--gap);
+    flex-shrink: 0;
+}
+
+/* Time Display Boxes */
+.time-display-box {
+    background: #0d0f1d;
+    border: var(--border) solid #fff;
+    border-radius: var(--border-radius);
+    padding: 8px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: clamp(60px, 8vh, 80px);
+}
+
+.time-label {
+    font-size: var(--font-label);
+    color: #999;
+    margin-bottom: 4px;
+    text-align: center;
+}
+
+.time-value {
+    font-size: var(--font-value-large);
+    font-weight: bold;
+    line-height: 1;
+}
+
+/* Data Grid - 2x3 grid for smaller data boxes */
+.data-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--gap);
+    flex: 1;
+    min-height: 0;
+}
+
+.small-data-box {
+    background: #0d0f1d;
+    border: var(--border) solid #fff;
+    border-radius: var(--border-radius);
+    padding: 6px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: clamp(70px, 9vh, 90px);
+}
+
+.small-data-label {
+    font-size: var(--font-label);
+    color: #999;
+    margin-bottom: 3px;
+    text-align: center;
+}
+
+.small-data-value {
+    font-size: var(--font-value-medium);
+    font-weight: bold;
+    line-height: 1;
+}
+
+.small-data-unit {
+    font-size: var(--font-unit);
+    color: #888;
+    margin-top: 2px;
+}
+
+/* ==================== RIGHT PANEL: CHARTS ==================== */
+.right-panel {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: var(--gap);
+    min-width: 0;
+    min-height: 0;
+}
+
+/* Chart Box */
+.chart-box {
+    background: #0d0f1d;
+    border: var(--border) solid #fff;
+    border-radius: var(--border-radius);
+    padding: 8px;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    min-width: 0;
+}
+
+/* Chart Header */
+.chart-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 6px;
+    flex-shrink: 0;
+}
+
+.chart-title {
+    font-size: var(--font-chart-title);
+    font-weight: bold;
+    color: #fff;
+}
+
+.chart-legend {
+    display: flex;
+    gap: 12px;
+    font-size: var(--font-subtext);
+}
+
+.legend-item {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.legend-color {
+    width: 16px;
+    height: 3px;
+    display: inline-block;
+    border-radius: 2px;
+}
+
+/* Chart Container */
+.chart-container {
+    flex: 1;
+    position: relative;
+    border: var(--border) solid #333;
+    border-radius: 4px;
+    background: #0a0a0a;
+    min-height: 0;
+    min-width: 0;
+}
+
+.chart-container canvas {
+    width: 100%;
+    height: 100%;
+    display: block;
+}
+
+/* ==================== NAV BUTTONS ==================== */
+.action-button {
+    width: clamp(70px, 7vw, 100px);
+    height: clamp(20px, 2.5vh, 25px);
+    border-radius: 8px;
+    font-size: var(--font-subtext);
+    font-weight: bold;
+    cursor: pointer;
+    border: none;
+    flex-shrink: 0;
+}
+
+.action-button:active {
+    transform: scale(0.98);
+}
+
+.start-btn {
+    background: #00cc00;
+    color: white;
+}
+
+.stop-btn {
+    background: #ff4444;
+    color: white;
+}
+
+.close-btn {
+    background: #3a3a4a;
+    color: #ffffff;
+    border: 1px solid #555;
+    border-radius: 4px;
+    width: 28px;
+    height: 28px;
+    font-size: 14px;
+    cursor: pointer;
+    margin-left: auto;
+    margin-right: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.2s;
+    flex-shrink: 0;
+}
+
+.close-btn:hover {
+    background: #e04343;
+    border-color: #e04343;
+}
+
+/* ==================== ELECTRON WINDOW DRAG ==================== */
+nav {
+    -webkit-app-region: drag;
+}
+
+nav li, nav button, nav a, nav select {
+    -webkit-app-region: no-drag;
+}

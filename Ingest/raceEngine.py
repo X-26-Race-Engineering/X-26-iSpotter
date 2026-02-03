@@ -25,6 +25,8 @@ last_pit_lap = 0
 fuel_start = 0.0
 pit_status = False
 last_fpl = 1.0
+curr_lap = {}
+best_lap = {}
 
 class stream_handlers:
     
@@ -32,7 +34,8 @@ class stream_handlers:
     def parse_basic_forces(stream):
         """Parse basic physics data including G-forces and vehicle dynamics"""
         me_idx = int(stream['PlayerCarIdx'] or 1)
-        return {
+        
+        dat = {
             'velo': float(stream['Speed'] or 0.0) * 2.23694,
             'brake': float(stream['BrakeRaw'] or 0.0),
             'clutch': 1 - float(stream['ClutchRaw'] or 0.0),
@@ -41,6 +44,10 @@ class stream_handlers:
             'maxSteeringAngle': float(stream['SteeringWheelAngleMax'] or 0.0),
             'flag': stream['CarIdxSessionFlags'][me_idx]
         }
+        
+        curr_lap[float(stream['LapDistPct'] or 0.0)] = dat
+        
+        return dat
         
     @staticmethod
     def parse_relative_timing(stream, cars):
@@ -114,7 +121,7 @@ class stream_handlers:
             'lap_best_lap_time': float(stream['LapBestLapTime'] or 0.0),
             'lap_last_lap_time': float(stream['LapLastLapTime'] or 0.0),
             'lap_current_lap_time': float(stream['LapCurrentLapTime'] or 0.0),
-            'lap_best_lap': int(stream['CarIdxBestLap'] or 1),
+            'lap_best_lap': int(stream['LapBestLap'] or 1),
             'live_delta': float(stream['LapDeltaToBestLap'] or 0.0),
             'leader_delta': float(stream['LapDeltaToSessionBestLap'] or 0.0),
             'lap': int(stream['Lap'] or 0),
@@ -184,6 +191,8 @@ class stream_handlers:
     
     @staticmethod
     def parse_all(stream, cars):
+        global stint_l
+        global best_lap
         """Parse all telemetry data for current tick"""
         return {
             'basic_forces': stream_handlers.parse_basic_forces(stream),
@@ -193,7 +202,9 @@ class stream_handlers:
             'drivetrain': stream_handlers.parse_drivetrain(stream),
             'strat_box': stream_handlers.get_hotbox(stream),
             'laps': None, #Initialize for init
-            'stint_lap': stint_l
+            'stint_lap': stint_l,
+            #'best_lap_mapping': best_lap
+            
         }
         
 class State:
@@ -335,6 +346,8 @@ def start_stream(interrupt_act=None):
     global cars
     global last_fpl
     global stint_n
+    global best_lap
+    global curr_lap
     
     stream_running = True
     ir_instance = irsdk.IRSDK()
@@ -367,6 +380,11 @@ def start_stream(interrupt_act=None):
                 total_time += float(frame['lap_times']['lap_last_lap_time'] or stint_total_time/max(stint_l, 1))
                 stint_l += 1
                 last_fpl = frame['strat_box']['avg_fuel_per_lap']
+                cars = sip.get_all_cars(ir_instance)
+                if prev_frame['lap_times']['lap_best_lap'] != frame['lap_times']['lap_best_lap']:
+                    best_lap = curr_lap
+                    
+                curr_lap = {}
 
             else:
                 frame['strat_box']['avg_fuel_per_lap'] = last_fpl

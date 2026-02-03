@@ -2,44 +2,157 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>X-26 iSpotter - Car Health Dashboard</title>
-    <link rel="stylesheet" href="/Styling/race_dashboard_v2.css">
+    <title>X-26 iSpotter - Practice/Quali Helper</title>
+    <link rel="stylesheet" href="/Styling/pq_helper.css">
     <script src="https://cdn.socket.io/4.5.4/socket.io.min.js"></script>
 </head>
 <body>
     {% include 'nav.html' %}
-
     <div class="dashboard-container">
-    </div>
-    <script src="/Scripts/nav.js"></script>
-    <script src="/Scripts/updatePQHelperDashboard.js"></script>
-    <script>
-        document.getElementById('pq-dashboard').background = '#b1b1b1';
+        
+        <!-- Left Panel: Lap Time Display -->
+        <div class="left-panel">
+            <div class="time-display-box">
+                <div class="time-label">Current Lap Time</div>
+                <div class="time-value" id="current-lap-time">99:99.999</div>
+            </div>
+            
+            <div class="time-display-box">
+                <div class="time-label">Predicted Lap Time</div>
+                <div class="time-value" id="predicted-lap-time">99:99.999</div>
+            </div>
+            
+            <div class="time-display-box">
+                <div class="time-label">Best Lap Time</div>
+                <div class="time-value" id="best-lap-time">99:99.999</div>
+            </div>
+            
+            <div class="time-display-box">
+                <div class="time-label">Last Lap Time</div>
+                <div class="time-value" id="last-lap-time">99:99.999</div>
+            </div>
+            
+            <!-- Data Boxes -->
+            <div class="data-grid">
+                <div class="small-data-box">
+                    <div class="small-data-label">Gear</div>
+                    <div class="small-data-value" id="gear">-</div>
+                </div>
+                
+                <div class="small-data-box">
+                    <div class="small-data-label">RPM</div>
+                    <div class="small-data-value" id="rpm">-----</div>
+                </div>
+                
+                <div class="small-data-box">
+                    <div class="small-data-label">Speed</div>
+                    <div class="small-data-value" id="speed">-</div>
+                    <div class="small-data-unit">MPH</div>
+                </div>
+                
+                <div class="small-data-box">
+                    <div class="small-data-label">Avg Fuel Use/Lap</div>
+                    <div class="small-data-value" id="avg-fuel-lap">---</div>
+                    <div class="small-data-unit">Liters/Lap</div>
+                </div>
+                
+                <div class="small-data-box">
+                    <div class="small-data-label">Est Laps of Fuel Remaining</div>
+                    <div class="small-data-value" id="fuel-laps">--</div>
+                    <div class="small-data-unit">Laps</div>
+                </div>
+                
+                <div class="small-data-box">
+                    <div class="small-data-label">Fuel Remaining</div>
+                    <div class="small-data-value" id="fuel-remaining">---</div>
+                    <div class="small-data-unit">Liters</div>
+                </div>
+            </div>
+        </div>
 
-        const manager = new UpdateManager();
+        <!-- Right Panel: Line Charts -->
+        <div class="right-panel">
+            
+            <!-- Line Chart 1: Speed -->
+            <div class="chart-box">
+                <div class="chart-header">
+                    <span class="chart-title">Speed (MPH)</span>
+                </div>
+                <div class="chart-container">
+                    <canvas id="speedChart"></canvas>
+                </div>
+            </div>
+            
+            <!-- Line Chart 2: Gear and RPM -->
+            <div class="chart-box">
+                <div class="chart-header">
+                    <span class="chart-title">Gear & RPM</span>
+                    <div class="chart-legend">
+                        <span class="legend-item"><span class="legend-color" style="background: #ffbb00;"></span> Gear</span>
+                        <span class="legend-item"><span class="legend-color" style="background: #04f7ff;"></span> RPM</span>
+                    </div>
+                </div>
+                <div class="chart-container">
+                    <canvas id="gearRpmChart"></canvas>
+                </div>
+            </div>
+            
+            <!-- Line Chart 3: Throttle and Brake -->
+            <div class="chart-box">
+                <div class="chart-header">
+                    <span class="chart-title">Throttle & Brake</span>
+                    <div class="chart-legend">
+                        <span class="legend-item"><span class="legend-color" style="background: #00ff00;"></span> Throttle</span>
+                        <span class="legend-item"><span class="legend-color" style="background: #ff3333;"></span> Brake</span>
+                    </div>
+                </div>
+                <div class="chart-container">
+                    <canvas id="throttleBrakeChart"></canvas>
+                </div>
+            </div>
+            
+            <!-- Line Chart 4: Fuel Use Per Hour -->
+            <div class="chart-box">
+                <div class="chart-header">
+                    <span class="chart-title">Fuel Use Per Hour (L/h)</span>
+                </div>
+                <div class="chart-container">
+                    <canvas id="fuelUseChart"></canvas>
+                </div>
+            </div>
+            
+        </div>
+    </div>
+
+    <script src="/Scripts/nav.js"></script>
+    <script src="/Scripts/practiceQualiHelper.js"></script>
+    <script>
+        const manager = new PracticeQualiManager();
         manager.init();
 
-        const socket = io('http://localhost:5000');
+        const socket = io('http://localhost:5000', {
+            transports: ['websocket'],  
+            upgrade: false,             
+            rememberUpgrade: true
+        });
 
         socket.on('connect', () => {
             console.log('Connected to telemetry server');
+            console.log('Transport:', socket.io.engine.transport.name);
         });
 
-        socket.on('disconnect', () => {
+        socket.io.engine.on('upgrade', (transport) => {
+            console.log('Upgraded to:', transport.name);
+        });
+
+        socket.on('disconnect', (err) => {
             console.log('Disconnected from telemetry server');
+            console.log(err);
         });
 
         // Single frame_update listener - passes data to manager
         socket.on('frame_update', (data) => {
             manager.onFrame(data);
-        });
-
-        socket.on('iracing_status', (data) => {
-            updateIRacingStatus(data.connected);
-        });
-
-        socket.on('stream_status', (data) => {
-            updateStreamStatus(data.status === 'started');
         });
     </script>
 </body>

@@ -238,7 +238,7 @@ class UpdateManager {
             dot.setAttribute('fill', color);
             dot.setAttribute('stroke', '#000000');
             dot.setAttribute('stroke-width', '2');
-            dot.setAttribute('fill-opacity', opacity);
+            dot.setAttribute('fill-opacity', `${opacity}`);
 
             const badge = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
             badge.setAttribute('class', 'marker-badge');
@@ -251,7 +251,8 @@ class UpdateManager {
             posText.setAttribute('class', 'marker-pos-text');
             posText.setAttribute('text-anchor', 'middle');
             posText.setAttribute('dominant-baseline', 'central');
-            posText.setAttribute('fill', color);
+            posText.setAttribute('fill', '#ffffff');
+            posText.setAttribute('font-weight', 'bold');
             posText.setAttribute('font-size', '9');
             posText.setAttribute('font-family', 'Arial');
 
@@ -374,7 +375,7 @@ class UpdateManager {
             dot.setAttribute('fill', '#00ff00');
             dot.setAttribute('stroke', '#0d0f1d');
             dot.setAttribute('stroke-width', '2.5');
-            dot.setAttribute('fill-opacity', opacity);
+            dot.setAttribute('fill-opacity', `${opacity}`);
 
             const badge = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
             badge.setAttribute('class', 'marker-badge');
@@ -522,7 +523,7 @@ class UpdateManager {
             // Position
             if (data.relative_timing?.curr_position !== undefined) {
                 const pos = data.relative_timing.curr_position;
-                const suffix = pos === 1 ? 'st' : pos === 2 ? 'nd' : pos === 3 ? 'rd' : 'th';
+                const suffix = pos.toString().includes('1') ? 'st' : pos.toString().includes('2') ? 'nd' : pos.toString().includes('3') ? 'rd' : 'th';
                 if (el.currentPos) el.currentPos.textContent = pos + suffix;
             }
 

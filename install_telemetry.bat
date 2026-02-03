@@ -87,40 +87,6 @@ cscript //nologo %VBS_FILE%
 if exist %VBS_FILE% del %VBS_FILE%
 
 echo.
-echo [4/4] Creating launcher script...
-
-REM Create the run script with better error handling
-(
-echo @echo off
-echo title X-26 iSpotter - iRacing Telemetry
-echo cd /d "%~dp0"
-echo.
-echo echo ============================================================
-echo echo  X-26 iSpotter - iRacing Telemetry Dashboard
-echo echo ============================================================
-echo.
-echo echo  Starting Flask telemetry server...
-echo start /b python app.py
-echo.
-echo echo  Waiting for Flask to be ready...
-echo timeout /t 3 /nobreak >nul
-echo.
-echo echo  Launching Electron dashboard...
-echo echo ============================================================
-echo npx electron .
-echo.
-echo echo ============================================================
-echo echo  Electron closed, stopping Flask server...
-echo taskkill /f /im python.exe >nul 2>&1
-echo echo  Shutdown complete.
-echo echo ============================================================
-) > run_telemetry.bat
-
-echo installing npm and packages...
-
-npm install electron
-
-echo.
 echo ============================================================
 echo Installation Complete!
 echo ============================================================
@@ -136,6 +102,10 @@ echo The dashboard will be available at: http://localhost:5000
 echo.
 echo ============================================================
 echo.
+
+echo installing npm and packages...
+
+npm install electron
 
 REM Ask if user wants to start now
 set /p START_NOW="Do you want to start the telemetry server now? (Y/N): "

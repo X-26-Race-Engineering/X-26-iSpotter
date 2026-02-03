@@ -65,6 +65,7 @@ li {
     border-radius: 6px;
     border: var(--border) solid #fff;
     font-size: var(--font-subtext);
+    font-weight: bold;
     padding: 0 8px;
     white-space: nowrap;
 }
@@ -188,6 +189,7 @@ a {
 
 .info-subtext {
     font-size: var(--font-subtext);
+    font-weight: bold;
     color: #999;
     margin-top: 3px;
 }
@@ -301,7 +303,7 @@ a {
     background: #0d0f1d;
     border: var(--border) solid #fff;
     border-radius: var(--border-radius);
-    padding: 12px;
+    padding: 16px;
     display: flex;
     justify-content: center;
     position: relative;
@@ -581,6 +583,7 @@ a {
     height: clamp(20px, 2.5vh, 25px);
     border-radius: 8px;
     font-size: var(--font-subtext);
+    font-weight: bold;
     cursor: pointer;
     border: none;
     flex-shrink: 0;

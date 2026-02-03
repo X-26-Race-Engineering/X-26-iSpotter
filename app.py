@@ -153,25 +153,15 @@ def telemetry_broadcaster():
 # Routes
 # ============================================
 
-@app.route("/")
-def index():
-    """Main dashboard page"""
-    return render_template("race_dashboard.html")
-
 @app.route("/race_dashboard.html")
 def engineer_dashboard():
-    """Engineer dashboard page"""
+    """Pitwall dashboard page"""
     return render_template("race_dashboard_v2.html")
 
 @app.route("/car_health_dashboard.html")
 def spotter_dashboard():
-    """Strategy dashboard page"""
+    """Practice/Quali helper dashboard page"""
     return render_template("car_health_dashboard.html")
-
-@app.route("/join_screen.html")
-def platform_analysis():
-    """Room join screen (placeholder)"""
-    return render_template("join_screen.html")
 
 @app.route("/race_screen.html")
 def strategy_dashboard():
@@ -183,12 +173,6 @@ def serve_styles(filename):
     """Serve CSS files"""
     styles_path = os.path.join('Overlays', 'Styling')
     return send_from_directory(styles_path, filename)
-
-@app.route("/Images/<path:filename>")
-def serve_images(filename):
-    """Serve image files"""
-    images_path = os.path.join('Overlays', 'Images')
-    return send_from_directory(images_path, filename)
 
 @app.route("/Scripts/<path:filename>")
 def serve_scripts(filename):
