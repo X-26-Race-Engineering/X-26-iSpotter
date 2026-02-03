@@ -59,10 +59,13 @@ This project simplifies the process of capturing, analyzing, and visualizing liv
 
 This project requires the following dependencies:
 
-- **Programming Language:** Python
+- **Programming Language:** Python, JavaScript
 - **Package Manager:** Pip
+- **Manual install packages**: Node.js
 
 ### Installation
+
+You will need Python 3.8+ for the file, so before running the install script download a version from  [here](https://www.python.org/downloads/release/python-3129/)
 
 Build X-26-iSpotter from the source and install dependencies:
 
@@ -85,8 +88,6 @@ Build X-26-iSpotter from the source and install dependencies:
 ```sh
 ❯ .\install_telemetry.bat
 ```
-
-**If the file does not recognize python AND fails to install the proper version install [here](https://www.python.org/downloads/release/python-3129/)**
 
 ### Usage
 

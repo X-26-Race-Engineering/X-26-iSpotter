@@ -155,8 +155,8 @@ def telemetry_broadcaster():
 
 @app.route("/")
 def index():
-    """Home page"""
-    return render_template("home_screen.html")
+    """Main dashboard page"""
+    return render_template("race_dashboard.html")
 
 @app.route("/race_dashboard.html")
 def engineer_dashboard():
