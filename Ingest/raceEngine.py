@@ -203,7 +203,7 @@ class stream_handlers:
             'strat_box': stream_handlers.get_hotbox(stream),
             'laps': None, #Initialize for init
             'stint_lap': stint_l,
-            #'best_lap_mapping': best_lap
+            'lapMarker': False
             
         }
         
@@ -385,6 +385,7 @@ def start_stream(interrupt_act=None):
                     best_lap = curr_lap
                     
                 curr_lap = {}
+                frame['lapMarker'] = True
 
             else:
                 frame['strat_box']['avg_fuel_per_lap'] = last_fpl
