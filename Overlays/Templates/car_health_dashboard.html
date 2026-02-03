@@ -1,0 +1,46 @@
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>X-26 iSpotter - Car Health Dashboard</title>
+    <link rel="stylesheet" href="/Styling/race_dashboard_v2.css">
+    <script src="https://cdn.socket.io/4.5.4/socket.io.min.js"></script>
+</head>
+<body>
+    {% include 'nav.html' %}
+
+    <div class="dashboard-container">
+    </div>
+    <script src="/Scripts/nav.js"></script>
+    <script src="/Scripts/updatePQHelperDashboard.js"></script>
+    <script>
+        document.getElementById('pq-dashboard').background = '#b1b1b1';
+
+        const manager = new UpdateManager();
+        manager.init();
+
+        const socket = io('http://localhost:5000');
+
+        socket.on('connect', () => {
+            console.log('Connected to telemetry server');
+        });
+
+        socket.on('disconnect', () => {
+            console.log('Disconnected from telemetry server');
+        });
+
+        // Single frame_update listener - passes data to manager
+        socket.on('frame_update', (data) => {
+            manager.onFrame(data);
+        });
+
+        socket.on('iracing_status', (data) => {
+            updateIRacingStatus(data.connected);
+        });
+
+        socket.on('stream_status', (data) => {
+            updateStreamStatus(data.status === 'started');
+        });
+    </script>
+</body>
+</html>

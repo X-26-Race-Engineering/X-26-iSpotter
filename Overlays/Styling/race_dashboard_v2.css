@@ -1,0 +1,650 @@
+/* ==================== RESET ==================== */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+/* ==================== ROOT VARIABLES ====================
+   All base values derived from original 1920x1200 layout.
+   vw/vh scale automatically with the Electron window size.
+   clamp() enforces min/max bounds so nothing collapses.
+*/
+:root {
+    /* Layout */
+    --nav-height: clamp(32px, 3.75vh, 45px);
+    --gap: clamp(2px, 0.33vh, 4px);
+    --border: 2px;
+    --border-radius: clamp(4px, 0.67vh, 8px);
+
+    /* Left panel width as % of viewport */
+    --position-panel-width: 25vw;
+
+    /* Row heights as % of available height (viewport minus nav) */
+    --available-height: calc(100vh - var(--nav-height));
+    --top-row-height: clamp(70px, 7.5vh, 90px);
+    --middle-row-height: clamp(60px, 10vh, 110px);
+    --bottom-row-height: calc(var(--available-height) - var(--top-row-height) - var(--middle-row-height) - 40px);
+
+    /* Font sizes */
+    --font-label: clamp(7px, 0.75vw, 10px);
+    --font-value-large: clamp(20px, 2.2vw, 34px);
+    --font-value-medium: clamp(14px, 1.4vw, 18px);
+    --font-subtext: clamp(9px, 0.9vw, 12px);
+    --font-unit: clamp(8px, 0.75vw, 10px);
+    --font-table: clamp(10px, 1vw, 13px);
+    --font-header: clamp(10px, 0.9vw, 12px);
+    --font-strategy: clamp(14px, 0.85vw, 10px);
+    --font-sector: clamp(9px, 0.75vw, 10px);
+}
+
+body {
+    font-family: 'Arial', sans-serif;
+    background: #0d0f1d;
+    color: white;
+    overflow: hidden;
+}
+
+/* ==================== NAV ==================== */
+nav {
+    background: #0d0f1d;
+    height: var(--nav-height);
+    max-width: 100%;
+}
+
+ul {
+    height: 100%;
+    display: flex;
+    align-items: center;
+}
+
+li {
+    display: inline;
+    height: auto;
+    background: #31333f;
+    border-radius: 6px;
+    border: var(--border) solid #fff;
+    font-size: var(--font-subtext);
+    padding: 0 8px;
+    white-space: nowrap;
+}
+
+a {
+    color: #FFFF;
+    text-decoration: None;
+}
+
+/* ==================== MAIN LAYOUT ==================== */
+.dashboard-container {
+    display: flex;
+    height: calc(100vh - var(--nav-height));
+    gap: 0;
+    overflow: hidden;
+}
+
+/* ==================== LEFT PANEL: POSITION TABLE ==================== */
+.position-panel {
+    width: var(--position-panel-width);
+    min-width: 220px;
+    background: #0d0f1d;
+    display: flex;
+    flex-direction: column;
+    border: var(--border) solid #fff;
+    border-radius: var(--border-radius);
+    margin-top: var(--gap);
+    max-height: 100%;
+    flex-shrink: 0;
+}
+
+.position-header {
+    display: grid;
+    grid-template-columns: 1fr 1fr 2fr 1.5fr;
+    padding: 5px 6px;
+    font-size: var(--font-header);
+    font-weight: bold;
+    border-bottom: 1px solid #333;
+    text-align: center;
+    height: clamp(28px, 3vh, 35px);
+    width: 100%;
+}
+
+.position-table {
+    flex: 1;
+    overflow-y: auto;
+    max-height: 100%;
+}
+
+.position-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr 2fr 1.5fr;
+    padding: 4px 6px;
+    font-size: var(--font-table);
+    border-bottom: 1px solid #111;
+    text-align: center;
+    height: clamp(24px, 2.7vh, 32px);
+}
+
+/* ==================== RIGHT PANEL: MAIN CONTENT ==================== */
+.main-panel {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: var(--gap);
+    padding: var(--gap);
+    background: #0d0f1d;
+    min-width: 0;
+}
+
+/* ==================== TOP ROW ==================== */
+.top-row {
+    display: flex;
+    gap: var(--gap);
+    height: var(--top-row-height);
+    flex-shrink: 0;
+}
+
+/* Standard Info Box */
+.info-box {
+    flex: 1;
+    min-width: 0;
+    height: 100%;
+    background: #0d0f1d;
+    border: var(--border) solid #fff;
+    border-radius: var(--border-radius);
+    padding: 5px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+
+.info-label {
+    font-size: var(--font-label);
+    color: #999;
+    margin-bottom: 3px;
+    text-align: center;
+}
+
+.info-value {
+    font-size: var(--font-value-large);
+    font-weight: bold;
+    line-height: 1;
+}
+
+/* Wide Info Box */
+.info-box-wide {
+    flex: 1.5;
+    min-width: 0;
+    height: 100%;
+    background: #0d0f1d;
+    border: var(--border) solid #fff;
+    border-radius: var(--border-radius);
+    padding: 5px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+
+.info-subtext {
+    font-size: var(--font-subtext);
+    color: #999;
+    margin-top: 3px;
+}
+
+/* Flag Box */
+.flag-box {
+    flex: 0.7;
+    min-width: 60px;
+    height: 100%;
+    background: #171b34;
+    border: var(--border) solid #fff;
+    border-radius: var(--border-radius);
+    padding: 5px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+
+.flag-indicator {
+    width: 100%;
+    flex: 1;
+    border-radius: 5px;
+    background: #00ff00;
+    margin-top: 3px;
+}
+
+/* ==================== MIDDLE ROW ==================== */
+.middle-row {
+    display: flex;
+    gap: var(--gap);
+    height: var(--middle-row-height);
+    flex-shrink: 0;
+}
+
+/* Mini Sectors Box */
+.sectors-box {
+    flex: 2;
+    min-width: 0;
+    height: 100%;
+    background: #0d0f1d;
+    border: var(--border) solid #fff;
+    border-radius: var(--border-radius);
+    padding: 5px;
+    display: flex;
+    flex-direction: column;
+}
+
+.sectors-label {
+    font-size: var(--font-label);
+    color: #999;
+    text-align: center;
+    margin-bottom: 2px;
+}
+
+.sectors-grid {
+    display: grid;
+    grid-template-columns: repeat(10, 1fr);
+    gap: 2px;
+    flex: 1;
+    min-height: 0;
+}
+
+.sector-cell {
+    background: #1a1a1a;
+    border: var(--border) solid #444;
+    border-radius: var(--border-radius);
+    justify-content: center;
+    align-items: center;
+    display: flex;
+    font-size: var(--font-sector);
+}
+
+/* Predicted Lap Box */
+.predicted-box {
+    flex: 1;
+    min-width: 0;
+    height: 100%;
+    background: #0d0f1d;
+    border: var(--border) solid #fff;
+    border-radius: var(--border-radius);
+    padding: 5px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+
+/* ==================== BOTTOM ROW ==================== */
+.bottom-row {
+    display: flex;
+    gap: var(--gap);
+    flex: 1;
+    min-height: 0;
+}
+
+/* ==================== CENTER GRID (Circle + Strategy) ==================== */
+.center-grid {
+    display: flex;
+    flex-direction: column;
+    gap: var(--gap);
+    flex: 1.3;
+    min-width: 0;
+    min-height: 0;
+}
+
+/* Circle of Doom */
+.circle-box {
+    flex: 1;
+    min-height: 0;
+    background: #0d0f1d;
+    border: var(--border) solid #fff;
+    border-radius: var(--border-radius);
+    padding: 12px;
+    display: flex;
+    justify-content: center;
+    position: relative;
+}
+
+.circle-svg {
+    width: 100%;
+    height: 100%;
+    max-width: 100%;
+}
+
+.circle-text {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    text-align: center;
+    font-size: var(--font-strategy);
+    color: #fff;
+    pointer-events: none;
+    line-height: 1.6;
+    white-space: nowrap;
+}
+
+/* Strategy Hot Box */
+.strategy-hot-box {
+    background: #0d0f1d;
+    display: flex;
+    flex-direction: column;
+    flex: 0.3;
+    border: var(--border) solid #fff;
+    border-radius: var(--border-radius);
+    justify-content: center;
+    overflow-y: auto;
+    flex-shrink: 0;
+    padding: 4px;
+}
+
+.strategy-grid {
+    width: 100%;
+    display: grid;
+    background: #0d0f1d;
+    gap: 0px;
+    grid-template-columns: 1.4fr 1fr;
+}
+
+.strategy-text-col {
+    background: #0d0f1d;
+    gap: 4px;
+}
+
+.strategy-text {
+    padding: 3px;
+    font-size: var(--font-strategy);
+}
+
+/* ==================== RIGHT GRID ==================== */
+.right-grid {
+    display: flex;
+    flex-direction: column;
+    gap: var(--gap);
+    flex: 1;
+    min-width: 0;
+    min-height: 0;
+}
+
+/* Row 1: Telemetry Module */
+.telemetry-module {
+    width: 100%;
+    height: clamp(140px, 13vh, 150px);
+    background: #0d0f1d;
+    border: var(--border) solid #fff;
+    border-radius: var(--border-radius);
+    padding: 6px;
+    display: flex;
+    gap: 6px;
+    flex-shrink: 0;
+}
+
+/* Line Chart */
+.line-chart-container {
+    flex: 2;
+    height: 100%;
+    position: relative;
+    border: var(--border) solid #333;
+    border-radius: 4px;
+    background: #0a0a0a;
+    min-width: 0;
+}
+
+#lineChart {
+    width: 100%;
+    height: 100%;
+    display: block;
+}
+
+/* Input Bars */
+.input-bars-container {
+    flex: 1;
+    height: 100%;
+    display: flex;
+    gap: var(--gap);
+    align-items: flex-end;
+}
+
+.input-bar {
+    flex: 1;
+    position: relative;
+    background: #1a1a1a;
+    border: var(--border) solid #333;
+    border-radius: 4px;
+    height: 100%;
+    overflow: hidden;
+}
+
+.input-bar-fill {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    transition: height 0.05s linear;
+    border-radius: 2px;
+}
+
+.clutch-bar .input-bar-fill {
+    background: linear-gradient(to top, #0066ff, #0099ff);
+}
+
+.brake-bar .input-bar-fill {
+    background: linear-gradient(to top, #cc0000, #ff3333);
+}
+
+.throttle-bar .input-bar-fill {
+    background: linear-gradient(to top, #00aa00, #00ff00);
+}
+
+/* Row 2: Meter Box */
+.meter-box {
+    width: 100%;
+    height: clamp(30px, 3vh, 90px);
+    background: #0d0f1d;
+    border: var(--border) solid #fff;
+    border-radius: var(--border-radius);
+    padding: 1px 12px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 3px;
+    flex-shrink: 0;
+}
+
+.meter-bar-container {
+    width: 100%;
+}
+
+.meter-bar-bg {
+    width: 100%;
+    height: clamp(20px, 3vh, 40px);
+    background: #1a1a1a;
+    border: var(--border) solid #444;
+    border-radius: 6px;
+    position: relative;
+    padding: 0px;
+}
+
+.meter-center {
+    position: absolute;
+    left: 50%;
+    top: 0;
+    bottom: 0;
+    width: 2px;
+    background: #666;
+    transform: translateX(-50%);
+}
+
+.meter-indicator {
+    position: relative;
+    width: 10px;
+    height: 100%;
+    background: #fff;
+    left: 50%;
+    transform: translateX(-50%);
+    transition: left 0.05s ease-out;
+}
+
+/* Row 3: Gear, RPM, Speed */
+.right-grid-row-3 {
+    display: flex;
+    gap: var(--gap);
+    height: clamp(110px, 9.5vh, 115px);
+    flex-shrink: 0;
+}
+
+/* Row 4: Fuel boxes */
+.right-grid-row-4 {
+    display: flex;
+    gap: var(--gap);
+    height: clamp(110px, 9.5vh, 115px);
+    flex-shrink: 0;
+}
+
+/* Row 5: Relative table */
+.right-grid-row-5 {
+    display: flex;
+    gap: var(--gap);
+    flex: 1;
+    min-height: 0;
+    border: var(--border) solid #fff;
+    border-radius: var(--border-radius);
+    flex-direction: column;
+}
+
+/* Standard Data Box */
+.data-box {
+    flex: 1;
+    min-width: 0;
+    height: 100%;
+    background: #0d0f1d;
+    border: var(--border) solid #fff;
+    border-radius: var(--border-radius);
+    padding: 6px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+
+.data-label {
+    font-size: var(--font-label);
+    color: #999;
+    margin-bottom: 3px;
+    text-align: center;
+}
+
+.data-value-large {
+    font-size: var(--font-value-large);
+    font-weight: bold;
+    line-height: 1;
+}
+
+.data-value-medium {
+    font-size: var(--font-value-medium);
+    font-weight: bold;
+    line-height: 1;
+}
+
+.data-unit {
+    font-size: var(--font-unit);
+    color: #888;
+    margin-top: 2px;
+}
+
+/* ==================== RELATIVE TABLE ==================== */
+.relative-header {
+    display: grid;
+    grid-template-columns: 1fr 1fr 2fr 1.5fr;
+    padding: 5px 6px;
+    font-size: var(--font-header);
+    font-weight: bold;
+    border-bottom: 1px solid #333;
+    text-align: center;
+    height: clamp(28px, 3vh, 35px);
+    width: 100%;
+    flex-shrink: 0;
+}
+
+.relative-table {
+    flex: 1;
+    overflow-y: auto;
+    min-height: 0;
+    width: 100%;
+}
+
+/* ==================== NAV BUTTONS ==================== */
+.action-button {
+    width: clamp(70px, 7vw, 100px);
+    height: clamp(20px, 2.5vh, 25px);
+    border-radius: 8px;
+    font-size: var(--font-subtext);
+    cursor: pointer;
+    border: none;
+    flex-shrink: 0;
+}
+
+.action-button:active {
+    transform: scale(0.98);
+}
+
+.start-btn {
+    background: #00cc00;
+    color: white;
+}
+
+.stop-btn {
+    background: #ff4444;
+    color: white;
+}
+
+.close-btn {
+    background: #3a3a4a;
+    color: #ffffff;
+    border: 1px solid #555;
+    border-radius: 4px;
+    width: 28px;
+    height: 28px;
+    font-size: 14px;
+    cursor: pointer;
+    margin-left: auto;
+    margin-right: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.2s;
+    flex-shrink: 0;
+}
+
+.close-btn:hover {
+    background: #e04343;
+    border-color: #e04343;
+}
+
+/* ==================== SCROLLBAR ==================== */
+.position-table::-webkit-scrollbar,
+.relative-table::-webkit-scrollbar {
+    width: 6px;
+}
+
+.position-table::-webkit-scrollbar-track,
+.relative-table::-webkit-scrollbar-track {
+    background: #0d0f1d;
+}
+
+.position-table::-webkit-scrollbar-thumb,
+.relative-table::-webkit-scrollbar-thumb {
+    background: #333;
+    border-radius: 3px;
+}
+
+/* ==================== ELECTRON WINDOW DRAG ==================== */
+nav {
+    -webkit-app-region: drag;
+}
+
+nav li, nav button,  nav a, nav select {
+    -webkit-app-region: no-drag;
+}

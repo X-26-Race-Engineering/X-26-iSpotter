@@ -1,0 +1,250 @@
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>X-26 iSpotter - Pitwall Dashboard</title>
+    <link rel="stylesheet" href="/Styling/race_dashboard_v2.css">
+    <script src="https://cdn.socket.io/4.5.4/socket.io.min.js"></script>
+</head>
+<body>
+    {% include 'nav.html' %}
+    <div class="dashboard-container">
+        
+        <!-- Left Panel: Position Table -->
+        <div class="position-panel">
+            <div class="position-header">
+                <span>Position</span>
+                <span>Class Pos.</span>
+                <span>Driver</span>
+                <span>Last Lap Delta</span>
+            </div>
+            <div class="position-table" id="position-table">
+                <!-- Rows generated dynamically -->
+            </div>
+        </div>
+
+        <!-- Right Panel: Main Content -->
+        <div class="main-panel">
+            
+            <!-- Row 1: 4 Small Boxes + 1 Large Box + Flag -->
+            <div class="top-row">
+                <div class="info-box">
+                    <div class="info-label">Current Pos.</div>
+                    <div class="info-value" id="current-pos">-th</div>
+                </div>
+
+                <div class="info-box">
+                    <div class="info-label">Current Lap</div>
+                    <div class="info-value" id="current-lap">999</div>
+                </div>
+
+                <div class="info-box">
+                    <div class="info-label">Curr. Stint Lap</div>
+                    <div class="info-value" id="stint-lap">999</div>
+                </div>
+
+                <div class="info-box">
+                    <div class="info-label">Lap Delta</div>
+                    <div class="info-value" id="curr-delta">+99.999</div>
+                </div>
+
+                <div class="info-box-wide">
+                    <div class="info-label">Current Lap Time</div>
+                    <div class="info-value" id="curr-lap-time">99:99.9999</div>
+                    <div class="info-subtext">Last Lap Time: <span id="prev-time">99:99.999</span></div>
+                </div>
+
+                <div class="flag-box">
+                    <div class="info-label">Flag</div>
+                    <div class="flag-indicator" id="flag"></div>
+                </div>
+            </div>
+
+            <!-- Row 2: Mini Sectors + Predicted Lap Time -->
+            <div class="middle-row">
+                <div class="sectors-box">
+                    <div class="sectors-label">Mini Sectors</div>
+                    <div class="sectors-grid">
+                        <div class="sector-cell" id="ms0">--:--.---</div>
+                        <div class="sector-cell" id="ms1">--:--.---</div>
+                        <div class="sector-cell" id="ms2">--:--.---</div>
+                        <div class="sector-cell" id="ms3">--:--.---</div>
+                        <div class="sector-cell" id="ms4">--:--.---</div>
+                        <div class="sector-cell" id="ms5">--:--.---</div>
+                        <div class="sector-cell" id="ms6">--:--.---</div>
+                        <div class="sector-cell" id="ms7">--:--.---</div>
+                        <div class="sector-cell" id="ms8">--:--.---</div>
+                        <div class="sector-cell" id="ms9">--:--.---</div>
+                    </div>
+                    <div class="info-subtext">Current Sector Time: <span id="curr-sector-time">99.999</span></div>
+                </div>
+
+                <div class="info-box-wide">
+                    <div class="info-label">Predicted Lap Time</div>
+                    <div class="info-value" id="pred-lap">99:99.999</div>
+                    <div class="info-subtext">Best Lap Time: <span id="best-time">99:99.999</span></div>
+                </div>
+            </div>
+
+            <!-- Row 3: Circle of Doom + Right Grid -->
+            <div class="bottom-row">
+                <div class="center-grid">
+                <!-- Left: Circle of Doom -->
+                    <div class="circle-box">
+                        <svg class="circle-svg" viewBox="0 0 400 400">
+                            <circle cx="200" cy="200" r="180" 
+                                    fill="none" 
+                                    stroke="white" 
+                                    stroke-width="10"/>
+                            <g id="driver-markers"></g>
+                        </svg>
+                        <div class="circle-text">
+                            <div>Average Pit Stop Loss: <span id="pit-loss">---</span></div>
+                            <div>Predicted delta to behind at Pit Exit: <span id="pred-delta">--</span></div>
+                            <div>Predicted Position at Pit Exit: <span id="pred-pos">--</span></div>
+                        </div>
+                    </div>
+
+                    <div class="strategy-hot-box">
+                        <p style="text-align: center;font-size: 10px; color: #999;">Strategy Hot Tools</p>
+                        <div class="strategy-text"> Pace needed within stint to get to 
+                            <select class ="strategy-text" id="position-select">
+                                <option value="P1">P1</option>
+                            </select>
+                        : <span class = "strategy-text" id="avg-pace-to-pos"> --:--.--- </span></div>
+                        <div class="strategy-grid">
+                            <div class = "strategy-text-col">
+                                <div class="strategy-text">Current Stint Average Pace: </span class="strategy-text" id="stint-avg-pace">99:99.999</span></div>
+                                <div class="strategy-text">Race Average Pace: </span class="strategy-text" id="race-avg-pace">99:99.999</span></div>
+                                <div class="strategy-text">Stints Completed: </span class="strategy-text" id="stints-completed">---</span></div>
+                            </div>
+                            <div class = "strategy-text-col">
+                                <div class="strategy-text">Time Remaining: </span class="strategy-text" id="time-remaining">99:99.999</span></div>
+                                <div class="strategy-text">Laps Remaining: </span class="strategy-text" id="laps-remaining">---</span></div>
+                                <div class="strategy-text">Average Laps Per Stint: </span class="strategy-text" id="laps-per-stint">---</span></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Right: Data Grid -->
+                <div class="right-grid">
+                    
+                    <!-- Row 1: Telemetry Module (Line Chart + Input Bars) -->
+                    <div class="telemetry-module">
+                        <!-- Line Chart -->
+                        <div class="line-chart-container">
+                            <canvas id="lineChart"></canvas>
+                        </div>
+
+                        <!-- Input Bars -->
+                        <div class="input-bars-container">
+                            <div class="input-bar clutch-bar">
+                                <div class="input-bar-fill" id="clutch-fill"></div>
+                            </div>
+                            <div class="input-bar brake-bar">
+                                <div class="input-bar-fill" id="brake-fill"></div>
+                            </div>
+                            <div class="input-bar throttle-bar">
+                                <div class="input-bar-fill" id="throttle-fill"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Row 2: Balance/Steering Meter -->
+                    <div class="meter-box">
+                        <div class="meter-bar-container">
+                            <div class="meter-bar-bg">
+                                <div class="meter-center"></div>
+                                <div class="meter-indicator" id="steering-bar"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Row 3: Gear, RPM, Speed -->
+                    <div class="right-grid-row-3">
+                        <div class="data-box">
+                            <div class="data-label">Gear</div>
+                            <div class="data-value-large" id="gear">-</div>
+                        </div>
+                        <div class="data-box" id="rpm">
+                            <div class="data-label">RPM</div>
+                            <div class="data-value-large" id="rpm-text">-----</div>
+                            <div class="data-unit">revs/min</div>
+                        </div>
+                        <div class="data-box">
+                            <div class="data-label">Speed</div>
+                            <div class="data-value-large" id="speed">-</div>
+                            <div class="data-unit">MPH</div>
+                        </div>
+                    </div>
+
+                    <!-- Row 4: Fuel boxes -->
+                    <div class="right-grid-row-4">
+                        <div class="data-box">
+                            <div class="data-label">Fuel Remaining</div>
+                            <div class="data-value-large" id="fuel">---</div>
+                            <div class="data-unit">Liters</div>
+                        </div>
+                        <div class="data-box">
+                            <div class="data-label">Avg Fuel Use/Lap</div>
+                            <div class="data-value-large" id="avg-use-lap">--</div>
+                            <div class="data-unit">Liters/Lap</div>
+                        </div>
+                        <div class="data-box">
+                            <div class="data-label">Est Laps of Fuel Remaining</div>
+                            <div class="data-value-large" id="fuel-laps">--</div>
+                            <div class="data-unit">Laps</div>
+                        </div>
+                    </div>
+                    <div class="right-grid-row-5">
+                        <div class="relative-header">
+                            <span>Position</span>
+                            <span>Class Pos.</span>
+                            <span>Driver</span>
+                            <span>Gap</span>
+                        </div>
+                        <div class="relative-table" id="relative-table">
+                            <!-- Rows generated dynamically -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <script src="/Scripts/nav.js"></script>
+    <script src="/Scripts/updateRaceDashboard.js"></script>
+    <script>
+        document.getElementById('pitwall-dashboard').backgroundColor = '#b1b1b1';
+        const manager = new UpdateManager();
+        manager.init();
+
+        const socket = io('http://localhost:5000', {
+            transports: ['websocket'],  
+            upgrade: false,             
+            rememberUpgrade: true
+        });
+
+        socket.on('connect', () => {
+            console.log('Connected to telemetry server');
+            console.log('Transport:', socket.io.engine.transport.name);
+        });
+
+        socket.io.engine.on('upgrade', (transport) => {
+            console.log('Upgraded to:', transport.name);
+        });
+
+        socket.on('disconnect', (err) => {
+            console.log('Disconnected from telemetry server');
+            console.log(err);
+        });
+
+        // Single frame_update listener - passes data to manager
+        socket.on('frame_update', (data) => {
+            manager.onFrame(data);
+        });
+    </script>
+</body>
+</html>
