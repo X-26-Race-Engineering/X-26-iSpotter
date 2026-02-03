@@ -48,6 +48,7 @@ class UpdateManager {
 
     cacheElements() {
         this.el = {
+            positionTable: document.getElementById('position-table'),
             currentPos: document.getElementById('current-pos'),
             currentLap: document.getElementById('current-lap'),
             stintLap: document.getElementById('stint-lap'),
@@ -56,6 +57,7 @@ class UpdateManager {
             prevTime: document.getElementById('prev-time'),
             predLap: document.getElementById('pred-lap'),
             bestTime: document.getElementById('best-time'),
+            flag: document.getElementById('flag'),
             ms1: document.getElementById('ms0'),
             ms2: document.getElementById('ms1'),
             ms3: document.getElementById('ms2'),
@@ -77,7 +79,6 @@ class UpdateManager {
             fuel: document.getElementById('fuel'),
             avgUseLap: document.getElementById('avg-use-lap'),
             fuelLaps: document.getElementById('fuel-laps'),
-            currPitStop: document.getElementById('curr-pit-stop'),
             stintAvgPace: document.getElementById('stint-avg-pace'),
             pitLoss: document.getElementById('pit-loss'),
             raceAvgPace: document.getElementById('race-avg-pace'),
@@ -184,11 +185,32 @@ class UpdateManager {
         };
     }
 
+    updatePositionMarker(id, name, position, classPosition, gap, classColor) {
+        let marker = document.getElementById(id);
+
+        if (!marker){
+            marker = document.createElement("div");
+            marker.classList.add("position-row");
+            marker.id = id;
+            marker.style.backgroundColor = classColor;
+            marker.style.color = '#ffffff';
+
+            this.el.positionTable.appendChild(marker);
+        }
+
+        marker.replaceChildren(
+            Object.assign(document.createElement("div"), { textContent: position }),
+            Object.assign(document.createElement("div"), { textContent: classPosition }),
+            Object.assign(document.createElement("div"), { textContent: name }),
+            Object.assign(document.createElement("div"), { textContent: this.formatTime(gap) })
+        );
+
+    }
     /**
      * Creates or updates a single driver marker on the circle.
      * Creates on first call for a given id, then just moves it on subsequent calls.
      */
-    updateDriverMarker(id, lapDistPct, name, lap, position, classPosition, refLap) {
+    updateDriverMarker(id, lapDistPct, name, lap, position, classPosition, refLap, classColor, pitStatus) {
         if (!this.el.driverMarkers) return;
 
         let marker = document.getElementById(id);
@@ -200,6 +222,11 @@ class UpdateManager {
             if (lap < refLap) {
                 color = '#00f7ff';
             }
+        
+            let opacity = 1;
+            if (pitStatus) {
+                opacity = 0.75;
+            }
 
         if (!marker) {
             marker = document.createElementNS('http://www.w3.org/2000/svg', 'g');
@@ -208,14 +235,15 @@ class UpdateManager {
             const dot = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
             dot.setAttribute('class', 'marker-dot');
             dot.setAttribute('r', '6');
-            dot.setAttribute('fill', '#ffffff');
-            dot.setAttribute('stroke', color);
+            dot.setAttribute('fill', color);
+            dot.setAttribute('stroke', '#000000');
             dot.setAttribute('stroke-width', '2');
+            dot.setAttribute('fill-opacity', opacity);
 
             const badge = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
             badge.setAttribute('class', 'marker-badge');
             badge.setAttribute('r', '10');
-            badge.setAttribute('fill', '#31333f');
+            badge.setAttribute('fill', classColor);
             badge.setAttribute('stroke', '#ffffff');
             badge.setAttribute('stroke-width', '1.5');
 
@@ -297,7 +325,7 @@ class UpdateManager {
         const posTextEl = marker.querySelector('.marker-pos-text');
         posTextEl.setAttribute('x', badgePos.x);
         posTextEl.setAttribute('y', badgePos.y);
-        posTextEl.textContent = position;
+        posTextEl.textContent = classPosition;
 
         const tooltipAnchor = this.lapDistToXY(lapDistPct, 230);
         const tooltip = marker.querySelector('.marker-tooltip');
@@ -324,7 +352,7 @@ class UpdateManager {
      * Updates the player's own marker. Visually distinct (green, larger),
      * always renders on top. No car_idx dependency.
      */
-    updatePlayerMarker(lapDistPct, name, lap, position, classPosition) {
+    updatePlayerMarker(lapDistPct, name, lap, position, classPosition, classColor, pitStatus) {
         const id = 'driver_player';
         if (!this.el.driverMarkers) return;
 
@@ -334,17 +362,24 @@ class UpdateManager {
             marker = document.createElementNS('http://www.w3.org/2000/svg', 'g');
             marker.setAttribute('id', id);
 
+            let opacity = 1;
+
+            if (pitStatus) {
+                opacity = 0.75;
+            }
+
             const dot = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
             dot.setAttribute('class', 'marker-dot');
             dot.setAttribute('r', '8');
             dot.setAttribute('fill', '#00ff00');
             dot.setAttribute('stroke', '#0d0f1d');
             dot.setAttribute('stroke-width', '2.5');
+            dot.setAttribute('fill-opacity', opacity);
 
             const badge = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
             badge.setAttribute('class', 'marker-badge');
             badge.setAttribute('r', '12');
-            badge.setAttribute('fill', '#00cc00');
+            badge.setAttribute('fill', classColor);
             badge.setAttribute('stroke', '#ffffff');
             badge.setAttribute('stroke-width', '2');
 
@@ -427,7 +462,7 @@ class UpdateManager {
         const posTextEl = marker.querySelector('.marker-pos-text');
         posTextEl.setAttribute('x', badgePos.x);
         posTextEl.setAttribute('y', badgePos.y);
-        posTextEl.textContent = position;
+        posTextEl.textContent = classPosition;
 
         const tooltipAnchor = this.lapDistToXY(lapDistPct, 230);
         const tooltip = marker.querySelector('.marker-tooltip');
@@ -519,7 +554,7 @@ class UpdateManager {
 
                 if (sectorEl) {
                     sectorEl.textContent = this.formatTime(lt.sector_time);
-                    sectorEl.style.fontSize = '14px';
+                    sectorEl.style.fontSize = '12px';
 
                     if (p_delta <= 0 && l_delta <= 0) sectorEl.style.backgroundColor = '#d900ffff';
                     else if (p_delta <= 0) sectorEl.style.backgroundColor = '#00ff00';
@@ -595,7 +630,6 @@ class UpdateManager {
             // Strategy
             if (data.strat_box) {
                 const sb = data.strat_box;
-                if (el.currPitStop) el.currPitStop.textContent = this.formatTime(sb.curr_stop_time) || '--:--.---';
                 if (el.stintAvgPace) el.stintAvgPace.textContent = this.formatTime(sb.stint_avg_pace) || '--:--.---';
                 if (el.pitLoss) el.pitLoss.textContent = this.formatTime(sb.avg_stop_time) || '--:--.---';
                 if (el.raceAvgPace) el.raceAvgPace.textContent = this.formatTime(sb.race_avg_pace) || '--:--.---';
@@ -612,16 +646,27 @@ class UpdateManager {
             }
 
             // Circle of Doom — other drivers
-            if (data.relative_timing?.drivers) {
-                data.relative_timing.drivers.forEach((driver) => {
+            if (data.relative_timing?.cars_by_pos) {
+                data.relative_timing.cars_by_pos.forEach((driver) => {
                     this.updateDriverMarker(
-                        'driver_' + driver.car_idx,
-                        driver.lap_dist_pct,
-                        driver.name,
-                        driver.lap,
-                        driver.position,
-                        driver.class_position,
-                        data.relative_timing.lap
+                        'driver_' + driver.CarIdx,
+                        driver.Lap_Dist,
+                        driver.Driver_Name,
+                        driver.Lap_Started,
+                        driver.Position,
+                        driver.Class_Pos,
+                        data.relative_timing.lap,
+                        driver.Class_Color,
+                        driver.Pit_Status
+                    );
+
+                    this.updatePositionMarker(
+                        'driver_' + driver.CarIdx + '_pos',
+                        driver.Driver_Name,
+                        driver.Position,
+                        driver.Class_Pos,
+                        driver.Gap_To_Leader,
+                        driver.Class_Color
                     );
                 });
             }
@@ -633,7 +678,9 @@ class UpdateManager {
                     'You',
                     data.relative_timing.lap,
                     data.relative_timing.curr_position,
-                    data.relative_timing.curr_class_position
+                    data.relative_timing.curr_class_position,
+                    data.relative_timing.class_color,
+                    data.relative_timing.pit_status
                 );
             }
 

@@ -124,19 +124,6 @@ a {
     height: clamp(24px, 2.7vh, 32px);
 }
 
-.position-row:nth-child(odd) {
-    background: #0a0a3a;
-}
-
-.position-row:nth-child(even) {
-    background: #171b34;
-}
-
-.position-row span:nth-child(3) {
-    text-align: left;
-    padding-left: 8px;
-}
-
 /* ==================== RIGHT PANEL: MAIN CONTENT ==================== */
 .main-panel {
     flex: 1;

@@ -25,24 +25,25 @@ class sessionInfoParsers:
         me_class = stream['CarIdxClass'][me_idx]
         pos = 1
         
-        for driver in stream['Drivers']:
-            if stream['CarIdxClass'][driver['CarIdx']] == me_class:
-                temp = {
-                    'Car_IDX': driver['CarIdx'],
-                    'Driver_Name': driver['UserName'],
-                    'Class_Color': driver['CarClassColor'],
-                    'Lap_Started': 0,
-                    'Car_Number': driver['CarNumber'],
-                    'Pit_Status': False,
-                    'Relative_Gap': 0,
-                    'Gap_To_Leader': 0,
-                    'Position': pos,
-                    'Class_Pos': pos,
-                    'Lap_Dist': 0
-                }
-                car_list.append(temp)
-                pos += 1
-            
+        if stream['DriverInfo'] and stream['DriverInfo']['Drivers']:
+            for driver in stream['Drivers']:
+                if stream['CarIdxClass'][driver['CarIdx']] == me_class:
+                    temp = {
+                        'CarIdx': driver['CarIdx'],
+                        'Driver_Name': driver['UserName'],
+                        'Class_Color': driver['CarClassColor'],
+                        'Lap_Started': 0,
+                        'Car_Number': driver['CarNumber'],
+                        'Pit_Status': False,
+                        'Relative_Gap': 0,
+                        'Gap_To_Leader': 0,
+                        'Position': pos,
+                        'Class_Pos': pos,
+                        'Lap_Dist': 0
+                    }
+                    car_list.append(temp)
+                    pos += 1
+                
         return car_list
 
     """Returns a list of all car info by car number for circle of doom to use, only called once
@@ -65,22 +66,24 @@ class sessionInfoParsers:
     def get_all_cars(stream):
         car_list = []
         pos = 1
-        for driver in stream['Drivers']:
-            temp = {
-                'Car_IDX': driver['CarIdx'],
-                'Driver_Name': driver['UserName'],
-                'Class_Color': driver['CarClassColor'],
-                'Lap_Started': 0,
-                'Car_Number': driver['CarNumber'],
-                'Pit_Status': False,
-                'Relative_Gap': 0,
-                'Gap_To_Leader': 0,
-                'Position': pos,
-                'Class_Pos': pos,
-                'Lap_Dist': 0
-                }
-            car_list.append(temp)
-            pos += 1
+
+        if stream['DriverInfo'] and stream['DriverInfo']['Drivers']:
+            for driver in stream['DriverInfo']['Drivers']:
+                temp = {
+                    'CarIdx': driver['CarIdx'],
+                    'Driver_Name': driver['UserName'],
+                    'Class_Color': '#' + str(driver['CarClassColor'])[2:],
+                    'Lap_Started': 0,
+                    'Car_Number': driver['CarNumber'],
+                    'Pit_Status': False,
+                    'Relative_Gap': 0,
+                    'Gap_To_Leader': 0,
+                    'Position': pos,
+                    'Class_Pos': pos,
+                    'Lap_Dist': 0
+                    }
+                car_list.append(temp)
+                pos += 1
             
         return car_list
             

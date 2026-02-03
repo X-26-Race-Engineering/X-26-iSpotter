@@ -7,6 +7,8 @@ from flask_socketio import SocketIO
 import threading
 import time
 import os
+import math
+import json
 
 # Import from Ingestion module
 from Ingest.raceEngine import get_frame, start_stream, stop_stream, get_connection_status
@@ -30,7 +32,8 @@ socketio = SocketIO(
     async_mode='threading',
     ping_timeout=60,
     ping_interval=25,
-    max_http_buffer_size=1e6
+    max_http_buffer_size=1e6,
+    transports=['websocket']
 )
 
 # Global state for stream control
@@ -42,6 +45,21 @@ class StreamState:
     last_iracing_status = False  # Track last known iRacing status
 
 stream_state = StreamState()
+
+def sanitize_frame(obj):
+    """
+    Recursively replace NaN and Infinity with 0.0
+    Only for frame data, not Socket.IO protocol messages
+    """
+    if isinstance(obj, float):
+        if math.isnan(obj) or math.isinf(obj):
+            return 0.0
+        return obj
+    elif isinstance(obj, dict):
+        return {k: sanitize_frame(v) for k, v in obj.items()}
+    elif isinstance(obj, (list, tuple)):
+        return type(obj)(sanitize_frame(item) for item in obj)
+    return obj
 
 def telemetry_broadcaster():
     """
@@ -91,6 +109,23 @@ def telemetry_broadcaster():
         if snapshot:
             # Add connection status to frame
             snapshot['connection'] = current_iracing_status
+            try:
+                import json
+                test_json = json.dumps(snapshot)
+                print(f"Frame OK - {len(test_json)} bytes, lap={snapshot.get('lap_times', {}).get('lap', '?')}")
+            except (TypeError, ValueError) as e:
+                print(f"SERIALIZATION ERROR: {e}")
+                print(f"Frame structure: {list(snapshot.keys())}")
+
+                # Find the problematic key
+                for key, value in snapshot.items():
+                    try:
+                        json.dumps({key: value})
+                    except:
+                        print(f"Problem with key '{key}': {type(value)}")
+                continue
+
+            snapshot = sanitize_frame(snapshot)
             
             # Broadcast to all connected clients
             socketio.emit("frame_update", snapshot)

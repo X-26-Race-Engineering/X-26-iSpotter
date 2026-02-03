@@ -56,7 +56,7 @@
 
                 <div class="flag-box">
                     <div class="info-label">Flag</div>
-                    <div class="flag-indicator"></div>
+                    <div class="flag-indicator" id="flag"></div>
                 </div>
             </div>
 
@@ -221,27 +221,29 @@
         const manager = new UpdateManager();
         manager.init();
 
-        const socket = io('http://localhost:5000');
+        const socket = io('http://localhost:5000', {
+            transports: ['websocket'],  
+            upgrade: false,             
+            rememberUpgrade: true
+        });
 
         socket.on('connect', () => {
             console.log('Connected to telemetry server');
+            console.log('Transport:', socket.io.engine.transport.name);
         });
 
-        socket.on('disconnect', () => {
+        socket.io.engine.on('upgrade', (transport) => {
+            console.log('Upgraded to:', transport.name);
+        });
+
+        socket.on('disconnect', (err) => {
             console.log('Disconnected from telemetry server');
+            console.log(err);
         });
 
         // Single frame_update listener - passes data to manager
         socket.on('frame_update', (data) => {
             manager.onFrame(data);
-        });
-
-        socket.on('iracing_status', (data) => {
-            updateIRacingStatus(data.connected);
-        });
-
-        socket.on('stream_status', (data) => {
-            updateStreamStatus(data.status === 'started');
         });
     </script>
 </body>
