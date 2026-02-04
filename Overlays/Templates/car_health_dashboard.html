@@ -39,7 +39,7 @@
                     <div class="small-data-value" id="gear">-</div>
                 </div>
                 
-                <div class="small-data-box">
+                <div class="small-data-box" id="rpm-box">
                     <div class="small-data-label">RPM</div>
                     <div class="small-data-value" id="rpm">-----</div>
                 </div>
@@ -127,7 +127,7 @@
     <script src="/Scripts/nav.js"></script>
     <script src="/Scripts/updatePQHelperDashboard.js"></script>
     <script>
-        const manager = new PracticeQualiManager();
+        const manager = new UpdateManager();
         manager.init();
 
         const socket = io('http://localhost:5000', {

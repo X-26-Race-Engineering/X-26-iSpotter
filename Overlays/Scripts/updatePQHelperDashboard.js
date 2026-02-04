@@ -3,7 +3,7 @@
  * Manages 4 separate line charts for telemetry visualization
  */
 
-class PracticeQualiManager {
+class UpdateManager {
     constructor() {
         // Chart canvases
         this.speedCanvas = null;
@@ -75,6 +75,7 @@ class PracticeQualiManager {
             
             // Data boxes
             gear: document.getElementById('gear'),
+            rpmBox: document.getElementById('rpm-box'),
             rpm: document.getElementById('rpm'),
             speed: document.getElementById('speed'),
             avgFuelLap: document.getElementById('avg-fuel-lap'),
@@ -478,10 +479,7 @@ class PracticeQualiManager {
                 else if (rpm >= dt.last_light && rpm < dt.blink_light) state = this.getStateColor('LASTLIGHT');
                 else if (rpm >= dt.blink_light) state = this.getStateColor('BLINKLIGHT');
                 else state = this.getStateColor('CLEAR');
-                if (el.rpm) el.rpm.style.borderColor = state;
-
-                // Update chart with X-value check
-                this.updateGearRpmChart(xValue, dt.gear || 0, dt.rpm || 0);
+                if (el.rpmBox) el.rpmBox.style.borderColor = state;
             }
 
             // Update basic forces (speed, throttle, brake)
@@ -490,13 +488,6 @@ class PracticeQualiManager {
                 
                 if (el.speed) el.speed.textContent = Math.round(bf.velo);
                 
-                const throttle = bf.throttle || 0;
-                const brake = bf.brake || 0;
-                const speed = bf.velo || 0;
-                
-                // Update charts with X-value check
-                this.updateSpeedChart(xValue, speed);
-                this.updateThrottleBrakeChart(xValue, throttle, brake);
             }
 
             // Update fuel data
@@ -504,9 +495,6 @@ class PracticeQualiManager {
                 const cons = data.consumables;
                 
                 if (el.fuelRemaining) el.fuelRemaining.textContent = cons.fuel_level || '--';
-                
-                // Update chart with X-value check
-                this.updateFuelUseChart(xValue, cons.fuel_use_per_hour || 0);
             }
 
             // Update strategy box data
@@ -515,6 +503,23 @@ class PracticeQualiManager {
                 
                 if (el.fuelLaps) el.fuelLaps.textContent = sb.laps_fuel || '--';
                 if (el.avgFuelLap) el.avgFuelLap.textContent = sb.avg_fuel_per_lap || '--';
+            }
+
+            // Collect all data first, then update charts
+            if (data.basic_forces && data.drivetrain && data.consumables) {
+                // Collect data
+                const speed = data.basic_forces.velo || 0;
+                const throttle = data.basic_forces.throttle || 0;
+                const brake = data.basic_forces.brake || 0;
+                const gear = data.drivetrain.gear || 0;
+                const rpm = data.drivetrain.rpm || 0;
+                const fuelUse = data.consumables.fuel_use_per_hour || 0;
+                
+                // Update in order: Speed last (manages X), after all others
+                this.updateGearRpmChart(xValue, gear, rpm);
+                this.updateThrottleBrakeChart(xValue, throttle, brake);
+                this.updateFuelUseChart(xValue, fuelUse);
+                this.updateSpeedChart(xValue, speed);
             }
 
             // Throttle chart updates (30 FPS)
