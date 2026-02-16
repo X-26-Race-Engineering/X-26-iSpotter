@@ -521,9 +521,9 @@ class UpdateManager {
             const el = this.el;
 
             // Position
-            if (data.relative_timing?.curr_position !== undefined) {
-                const pos = data.relative_timing.curr_position;
-                const suffix = pos.toString().includes('1') ? 'st' : pos.toString().includes('2') ? 'nd' : pos.toString().includes('3') ? 'rd' : 'th';
+            if (data.relative_timing?.curr_class_position !== undefined) {
+                const pos = data.relative_timing.curr_class_position;
+                const suffix = pos.toString().slice(-1) == '1' ? 'st' : pos.toString().slice(-1) == 2 ? 'nd' : pos.toString().slice(-1) == 3 ? 'rd' : 'th';
                 if (el.currentPos) el.currentPos.textContent = pos + suffix;
             }
 
@@ -557,8 +557,7 @@ class UpdateManager {
                     sectorEl.textContent = this.formatTime(lt.sector_time);
                     sectorEl.style.fontSize = '12px';
 
-                    if (p_delta <= 0 && l_delta <= 0) sectorEl.style.backgroundColor = '#d900ffff';
-                    else if (p_delta <= 0) sectorEl.style.backgroundColor = '#00ff00';
+                    if (l_delta <= 0) sectorEl.style.backgroundColor = '#00ff00';
                     else sectorEl.style.backgroundColor = '#ff0000';
                 }
 
@@ -680,7 +679,7 @@ class UpdateManager {
                     data.relative_timing.lap,
                     data.relative_timing.curr_position,
                     data.relative_timing.curr_class_position,
-                    data.relative_timing.class_color,
+                    data.relative_timing.class_color ?? '#000000',
                     data.relative_timing.pit_status
                 );
             }

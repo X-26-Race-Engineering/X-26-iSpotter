@@ -37,6 +37,18 @@ class UpdateManager {
         // Chart 4: Fuel Use Per Hour
         this.fuelUseHistory = [];
         
+        // Best lap ghost data (reference lap)
+        this.bestLap = {
+            lapNum: -1,
+            xValues: [],
+            speed: [],
+            gear: [],
+            rpm: [],
+            throttle: [],
+            brake: [],
+            fuelUse: []
+        };
+        
         // Cached DOM elements
         this.el = null;
         
@@ -70,13 +82,14 @@ class UpdateManager {
             // Time displays
             currentLapTime: document.getElementById('current-lap-time'),
             predictedLapTime: document.getElementById('predicted-lap-time'),
+            predictedLapBox: document.getElementById('pred-box'),
             bestLapTime: document.getElementById('best-lap-time'),
             lastLapTime: document.getElementById('last-lap-time'),
             
             // Data boxes
             gear: document.getElementById('gear'),
-            rpmBox: document.getElementById('rpm-box'),
             rpm: document.getElementById('rpm'),
+            rpmBox: document.getElementById('rpm-box'),
             speed: document.getElementById('speed'),
             avgFuelLap: document.getElementById('avg-fuel-lap'),
             fuelLaps: document.getElementById('fuel-laps'),
@@ -131,6 +144,12 @@ class UpdateManager {
             this.resizeCanvas(this.gearRpmCanvas);
             this.resizeCanvas(this.throttleBrakeCanvas);
             this.resizeCanvas(this.fuelUseCanvas);
+            
+            // Redraw all charts after resize
+            this.drawSpeedChart();
+            this.drawGearRpmChart();
+            this.drawThrottleBrakeChart();
+            this.drawFuelUseChart();
         }, { passive: true });
     }
 
@@ -154,21 +173,39 @@ class UpdateManager {
 
         this.speedCtx.clearRect(0, 0, width, height);
 
-        // Find min and max speed for scaling
-        const maxSpeed = Math.max(...this.speedHistory, 1);
-        const minSpeed = Math.min(...this.speedHistory, 0);
+        // Find min and max speed for scaling (include best lap data)
+        let allSpeeds = [...this.speedHistory];
+        if (this.bestLap.speed.length > 0) {
+            allSpeeds = [...allSpeeds, ...this.bestLap.speed];
+        }
+        const maxSpeed = Math.max(...allSpeeds, 1);
+        const minSpeed = Math.min(...allSpeeds, 0);
         const speedRange = maxSpeed - minSpeed || 1;
 
-        // Draw speed line
-        this.speedCtx.strokeStyle = '#ffffff';
+        // Draw best lap ghost FIRST (underneath current lap)
+        if (this.bestLap.xValues.length > 1) {
+            this.speedCtx.strokeStyle = 'rgba(0, 89, 255, 0.4)';  // Semi-transparent white
+            this.speedCtx.lineWidth = 2;
+            this.speedCtx.beginPath();
+            
+            const len = this.bestLap.speed.length;
+            for (let i = 0; i < len; i++) {
+                const x = padding + (this.bestLap.xValues[i] / 100) * drawWidth;
+                const y = height - padding - ((this.bestLap.speed[i] - minSpeed) / speedRange) * drawHeight;
+                if (i === 0) this.speedCtx.moveTo(x, y);
+                else this.speedCtx.lineTo(x, y);
+            }
+            this.speedCtx.stroke();
+        }
+
+        // Draw current lap speed line (on top)
+        this.speedCtx.strokeStyle = '#0044ff';
         this.speedCtx.lineWidth = 2;
         this.speedCtx.beginPath();
         
         const len = this.speedHistory.length;
         for (let i = 0; i < len; i++) {
-            // X: Use actual lap distance percentage (0-100)
             const x = padding + (this.xValues[i] / 100) * drawWidth;
-            // Y: Scale based on actual min/max values
             const y = height - padding - ((this.speedHistory[i] - minSpeed) / speedRange) * drawHeight;
             if (i === 0) this.speedCtx.moveTo(x, y);
             else this.speedCtx.lineTo(x, y);
@@ -205,41 +242,74 @@ class UpdateManager {
 
         this.gearRpmCtx.clearRect(0, 0, width, height);
 
-        // Find min/max for scaling
-        const maxRpm = Math.max(...this.rpmHistory, 1);
-        const minRpm = Math.min(...this.rpmHistory, 0);
+        // Find min/max for scaling (include best lap)
+        let allRpm = [...this.rpmHistory];
+        let allGear = [...this.gearHistory];
+        if (this.bestLap.rpm.length > 0) {
+            allRpm = [...allRpm, ...this.bestLap.rpm];
+            allGear = [...allGear, ...this.bestLap.gear];
+        }
+        
+        const maxRpm = Math.max(...allRpm, 1);
+        const minRpm = Math.min(...allRpm, 0);
         const rpmRange = maxRpm - minRpm || 1;
         
-        const maxGear = Math.max(...this.gearHistory, 1);
-        const minGear = Math.min(...this.gearHistory, 0);
+        const maxGear = Math.max(...allGear, 1);
+        const minGear = Math.min(...allGear, 0);
         const gearRange = maxGear - minGear || 1;
+
+        // Draw best lap RPM ghost FIRST
+        if (this.bestLap.xValues.length > 1) {
+            this.gearRpmCtx.strokeStyle = 'rgba(4, 247, 255, 0.4)';  // Semi-transparent cyan
+            this.gearRpmCtx.lineWidth = 2;
+            this.gearRpmCtx.beginPath();
+            
+            const len = this.bestLap.rpm.length;
+            for (let i = 0; i < len; i++) {
+                const x = padding + (this.bestLap.xValues[i] / 100) * drawWidth;
+                const y = height - padding - ((this.bestLap.rpm[i] - minRpm) / rpmRange) * drawHeight;
+                if (i === 0) this.gearRpmCtx.moveTo(x, y);
+                else this.gearRpmCtx.lineTo(x, y);
+            }
+            this.gearRpmCtx.stroke();
+            
+            // Draw best lap Gear ghost
+            this.gearRpmCtx.strokeStyle = 'rgba(255, 187, 0, 0.4)';  // Semi-transparent yellow
+            this.gearRpmCtx.lineWidth = 2;
+            this.gearRpmCtx.beginPath();
+            
+            for (let i = 0; i < len; i++) {
+                const x = padding + (this.bestLap.xValues[i] / 100) * drawWidth;
+                const normalizedGear = (this.bestLap.gear[i] - minGear) / gearRange;
+                const y = height - padding - (normalizedGear * drawHeight * 0.3);
+                if (i === 0) this.gearRpmCtx.moveTo(x, y);
+                else this.gearRpmCtx.lineTo(x, y);
+            }
+            this.gearRpmCtx.stroke();
+        }
 
         const len = this.rpmHistory.length;
 
-        // Draw RPM line (cyan)
+        // Draw current RPM line (cyan)
         this.gearRpmCtx.strokeStyle = '#04f7ff';
         this.gearRpmCtx.lineWidth = 2;
         this.gearRpmCtx.beginPath();
         
         for (let i = 0; i < len; i++) {
-            // X: Use actual lap distance percentage (0-100)
             const x = padding + (this.xValues[i] / 100) * drawWidth;
-            // Y: Scale RPM to full height
             const y = height - padding - ((this.rpmHistory[i] - minRpm) / rpmRange) * drawHeight;
             if (i === 0) this.gearRpmCtx.moveTo(x, y);
             else this.gearRpmCtx.lineTo(x, y);
         }
         this.gearRpmCtx.stroke();
 
-        // Draw Gear line (yellow) - scaled to bottom 30%
+        // Draw current Gear line (yellow)
         this.gearRpmCtx.strokeStyle = '#ffbb00';
         this.gearRpmCtx.lineWidth = 2;
         this.gearRpmCtx.beginPath();
         
         for (let i = 0; i < len; i++) {
-            // X: Use actual lap distance percentage (0-100)
             const x = padding + (this.xValues[i] / 100) * drawWidth;
-            // Y: Scale gear to bottom 30% of chart
             const normalizedGear = (this.gearHistory[i] - minGear) / gearRange;
             const y = height - padding - (normalizedGear * drawHeight * 0.3);
             if (i === 0) this.gearRpmCtx.moveTo(x, y);
@@ -249,16 +319,10 @@ class UpdateManager {
     }
 
     updateGearRpmChart(xValue, gear, rpm) {
-        // Only add point if X-value is greater than last recorded X-value
-        // X-values are already managed by updateSpeedChart, so just check
-        if (xValue > this.lastXValue || this.gearHistory.length === 0) {
+        // Speed chart manages xValues array, just add data when it does
+        if (this.gearHistory.length < this.xValues.length) {
             this.gearHistory.push(gear);
             this.rpmHistory.push(rpm);
-            
-            if (this.gearHistory.length > this.maxDataPoints) {
-                this.gearHistory.shift();
-                this.rpmHistory.shift();
-            }
         }
     }
 
@@ -275,32 +339,59 @@ class UpdateManager {
 
         this.throttleBrakeCtx.clearRect(0, 0, width, height);
 
+        // Draw best lap throttle/brake ghost FIRST
+        if (this.bestLap.xValues.length > 1) {
+            const len = this.bestLap.throttle.length;
+            
+            // Best lap throttle (green ghost)
+            this.throttleBrakeCtx.strokeStyle = 'rgba(0, 255, 0, 0.4)';
+            this.throttleBrakeCtx.lineWidth = 2;
+            this.throttleBrakeCtx.beginPath();
+            
+            for (let i = 0; i < len; i++) {
+                const x = padding + (this.bestLap.xValues[i] / 100) * drawWidth;
+                const y = height - padding - this.bestLap.throttle[i] * drawHeight;
+                if (i === 0) this.throttleBrakeCtx.moveTo(x, y);
+                else this.throttleBrakeCtx.lineTo(x, y);
+            }
+            this.throttleBrakeCtx.stroke();
+            
+            // Best lap brake (red ghost)
+            this.throttleBrakeCtx.strokeStyle = 'rgba(255, 51, 51, 0.4)';
+            this.throttleBrakeCtx.lineWidth = 2;
+            this.throttleBrakeCtx.beginPath();
+            
+            for (let i = 0; i < len; i++) {
+                const x = padding + (this.bestLap.xValues[i] / 100) * drawWidth;
+                const y = height - padding - this.bestLap.brake[i] * drawHeight;
+                if (i === 0) this.throttleBrakeCtx.moveTo(x, y);
+                else this.throttleBrakeCtx.lineTo(x, y);
+            }
+            this.throttleBrakeCtx.stroke();
+        }
+
         const len = this.throttleHistory.length;
 
-        // Draw throttle line (green)
+        // Draw current throttle line (green)
         this.throttleBrakeCtx.strokeStyle = '#00ff00';
         this.throttleBrakeCtx.lineWidth = 2;
         this.throttleBrakeCtx.beginPath();
         
         for (let i = 0; i < len; i++) {
-            // X: Use actual lap distance percentage (0-100)
             const x = padding + (this.xValues[i] / 100) * drawWidth;
-            // Y: Fixed scale 0-1 (0-100%)
             const y = height - padding - this.throttleHistory[i] * drawHeight;
             if (i === 0) this.throttleBrakeCtx.moveTo(x, y);
             else this.throttleBrakeCtx.lineTo(x, y);
         }
         this.throttleBrakeCtx.stroke();
 
-        // Draw brake line (red)
+        // Draw current brake line (red)
         this.throttleBrakeCtx.strokeStyle = '#ff3333';
         this.throttleBrakeCtx.lineWidth = 2;
         this.throttleBrakeCtx.beginPath();
         
         for (let i = 0; i < len; i++) {
-            // X: Use actual lap distance percentage (0-100)
             const x = padding + (this.xValues[i] / 100) * drawWidth;
-            // Y: Fixed scale 0-1 (0-100%)
             const y = height - padding - this.brakeHistory[i] * drawHeight;
             if (i === 0) this.throttleBrakeCtx.moveTo(x, y);
             else this.throttleBrakeCtx.lineTo(x, y);
@@ -309,15 +400,14 @@ class UpdateManager {
     }
 
     updateThrottleBrakeChart(xValue, throttle, brake) {
-        // Only add point if X-value is greater than last recorded X-value
-        if (xValue > this.lastXValue || this.throttleHistory.length === 0) {
-            this.throttleHistory.push(throttle);
-            this.brakeHistory.push(brake);
+        // Speed chart manages xValues array, just add data when it does
+        if (this.throttleHistory.length < this.xValues.length) {
+            // Clamp throttle and brake to 0-1 range
+            const clampedThrottle = Math.max(0, Math.min(1, throttle));
+            const clampedBrake = Math.max(0, Math.min(1, brake));
             
-            if (this.throttleHistory.length > this.maxDataPoints) {
-                this.throttleHistory.shift();
-                this.brakeHistory.shift();
-            }
+            this.throttleHistory.push(clampedThrottle);
+            this.brakeHistory.push(clampedBrake);
         }
     }
 
@@ -334,21 +424,39 @@ class UpdateManager {
 
         this.fuelUseCtx.clearRect(0, 0, width, height);
 
-        // Find min and max fuel use for scaling
-        const maxFuelUse = Math.max(...this.fuelUseHistory, 1);
-        const minFuelUse = Math.min(...this.fuelUseHistory, 0);
+        // Find min and max fuel use for scaling (include best lap)
+        let allFuelUse = [...this.fuelUseHistory];
+        if (this.bestLap.fuelUse.length > 0) {
+            allFuelUse = [...allFuelUse, ...this.bestLap.fuelUse];
+        }
+        const maxFuelUse = Math.max(...allFuelUse, 1);
+        const minFuelUse = Math.min(...allFuelUse, 0);
         const fuelUseRange = maxFuelUse - minFuelUse || 1;
 
-        // Draw fuel use line (white)
+        // Draw best lap fuel use ghost FIRST
+        if (this.bestLap.xValues.length > 1) {
+            this.fuelUseCtx.strokeStyle = 'rgba(255, 255, 255, 0.3)';  // Semi-transparent white
+            this.fuelUseCtx.lineWidth = 2;
+            this.fuelUseCtx.beginPath();
+            
+            const len = this.bestLap.fuelUse.length;
+            for (let i = 0; i < len; i++) {
+                const x = padding + (this.bestLap.xValues[i] / 100) * drawWidth;
+                const y = height - padding - ((this.bestLap.fuelUse[i] - minFuelUse) / fuelUseRange) * drawHeight;
+                if (i === 0) this.fuelUseCtx.moveTo(x, y);
+                else this.fuelUseCtx.lineTo(x, y);
+            }
+            this.fuelUseCtx.stroke();
+        }
+
+        // Draw current fuel use line (white)
         this.fuelUseCtx.strokeStyle = '#ffffff';
         this.fuelUseCtx.lineWidth = 2;
         this.fuelUseCtx.beginPath();
         
         const len = this.fuelUseHistory.length;
         for (let i = 0; i < len; i++) {
-            // X: Use actual lap distance percentage (0-100)
             const x = padding + (this.xValues[i] / 100) * drawWidth;
-            // Y: Scale based on actual min/max values
             const y = height - padding - ((this.fuelUseHistory[i] - minFuelUse) / fuelUseRange) * drawHeight;
             if (i === 0) this.fuelUseCtx.moveTo(x, y);
             else this.fuelUseCtx.lineTo(x, y);
@@ -357,13 +465,9 @@ class UpdateManager {
     }
 
     updateFuelUseChart(xValue, fuelUsePerHour) {
-        // Only add point if X-value is greater than last recorded X-value
-        if (xValue > this.lastXValue || this.fuelUseHistory.length === 0) {
+        // Speed chart manages xValues array, just add data when it does
+        if (this.fuelUseHistory.length < this.xValues.length) {
             this.fuelUseHistory.push(fuelUsePerHour);
-            
-            if (this.fuelUseHistory.length > this.maxDataPoints) {
-                this.fuelUseHistory.shift();
-            }
         }
     }
 
@@ -402,13 +506,39 @@ class UpdateManager {
         }
     }
     
+    /**
+     * Update best lap ghost data (called when server sends new best lap)
+     * @param {Object} bestLapData - Object containing arrays of best lap data
+     */
+    updateBestLap(bestLapData) {
+        console.log('📊 Updating best lap ghost data');
+        
+        // Store best lap data
+        this.bestLap.xValues = bestLapData.xVals || [];
+        if (this.bestLap.xValues && this.bestLap.xValues != []) this.bestLap.xValues = this.bestLap.xValues.map(x => x * 100);
+        this.bestLap.speed = bestLapData.velos || [];
+        this.bestLap.gear = bestLapData.gear || [];
+        this.bestLap.rpm = bestLapData.rpm || [];
+        this.bestLap.throttle = bestLapData.throttle || [];
+        this.bestLap.brake = bestLapData.brake || [];
+        this.bestLap.fuelUse = bestLapData.fuelUse || [];
+        
+        console.log(`✓ Best lap loaded: ${this.bestLap.xValues.length} points`);
+        
+        // Force immediate redraw to show ghost
+        this.drawSpeedChart();
+        this.drawGearRpmChart();
+        this.drawThrottleBrakeChart();
+        this.drawFuelUseChart();
+    }
+    
     formatTime(seconds) {
         if (!seconds || seconds <= 0 || seconds >= 999999) return '--:--';
         const mins = Math.floor(seconds / 60);
         const secs = (seconds % 60).toFixed(3);
         return `${mins}:${secs.padStart(6, '0')}`;
     }
-
+    
     getStateColor(state) {
         switch (state) {
             case 'BLINKLIGHT': return '#ff0000';
@@ -444,6 +574,12 @@ class UpdateManager {
                 (data.lap_times && data.lap_times.lap > this.lastLap && this.lastLap > 0)) {
                 this.resetCharts();
             }
+
+            // ==================== BEST LAP UPDATE CHECK ====================
+            // Check if server is sending new best lap data
+            if (data.bestLap && (data.bestLap.lapNum != this.bestLap.lapNum || this.bestLap.lapNum == -1)) {
+                this.updateBestLap(data.bestLap);
+            }
             
             // Update last lap number
             if (data.lap_times && data.lap_times.lap !== undefined) {
@@ -464,6 +600,9 @@ class UpdateManager {
                 if (blap && blap < 999999 && el.predictedLapTime && p_delta !== undefined) {
                     el.predictedLapTime.textContent = this.formatTime(blap + p_delta);
                 }
+
+                const color = p_delta >= 0 ? '#ff3333' : '#00ff00';
+                if (el.predictedLapBox) el.predictedLapBox.borderColor = color;
             }
 
             // Update drivetrain data
@@ -487,7 +626,6 @@ class UpdateManager {
                 const bf = data.basic_forces;
                 
                 if (el.speed) el.speed.textContent = Math.round(bf.velo);
-                
             }
 
             // Update fuel data
@@ -497,29 +635,30 @@ class UpdateManager {
                 if (el.fuelRemaining) el.fuelRemaining.textContent = cons.fuel_level || '--';
             }
 
-            // Update strategy box data
-            if (data.strat_box) {
-                const sb = data.strat_box;
-                
-                if (el.fuelLaps) el.fuelLaps.textContent = sb.laps_fuel || '--';
-                if (el.avgFuelLap) el.avgFuelLap.textContent = sb.avg_fuel_per_lap || '--';
-            }
-
-            // Collect all data first, then update charts
+            // ==================== UPDATE ALL CHARTS TOGETHER ====================
+            // Collect all data first, then update charts in correct order
             if (data.basic_forces && data.drivetrain && data.consumables) {
-                // Collect data
                 const speed = data.basic_forces.velo || 0;
                 const throttle = data.basic_forces.throttle || 0;
                 const brake = data.basic_forces.brake || 0;
                 const gear = data.drivetrain.gear || 0;
                 const rpm = data.drivetrain.rpm || 0;
                 const fuelUse = data.consumables.fuel_use_per_hour || 0;
+
                 
-                // Update in order: Speed last (manages X), after all others
+                // Then update other charts (they sync to X-values length)
                 this.updateGearRpmChart(xValue, gear, rpm);
                 this.updateThrottleBrakeChart(xValue, throttle, brake);
                 this.updateFuelUseChart(xValue, fuelUse);
                 this.updateSpeedChart(xValue, speed);
+            }
+
+            // Update strategy box data
+            if (data.strat_box) {
+                const sb = data.strat_box;
+                
+                if (el.fuelLaps) el.fuelLaps.textContent = sb.laps_fuel || '--';
+                if (el.avgFuelLap) el.avgFuelLap.textContent = sb.avg_fuel_per_lap || '--';
             }
 
             // Throttle chart updates (30 FPS)

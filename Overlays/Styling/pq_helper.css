@@ -169,6 +169,7 @@ a {
     flex-direction: column;
     min-height: 0;
     min-width: 0;
+    flex: 1 1 0;
 }
 
 /* Chart Header */
@@ -176,7 +177,7 @@ a {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 6px;
+    min-height: clamp(20px, 2.5vh, 28px);
     flex-shrink: 0;
 }
 
@@ -207,7 +208,7 @@ a {
 
 /* Chart Container */
 .chart-container {
-    flex: 1;
+    flex: 1 1 0;
     position: relative;
     border: var(--border) solid #333;
     border-radius: 4px;

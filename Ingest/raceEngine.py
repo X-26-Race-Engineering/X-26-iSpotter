@@ -4,6 +4,8 @@ import threading
 import numpy as np
 import keyboard
 from .sessionInfoParser import sessionInfoParsers as sip
+from .fileWriter import fileWriter
+from copy import deepcopy
 
 #Global vars
 frame = {}
@@ -25,17 +27,48 @@ last_pit_lap = 0
 fuel_start = 0.0
 pit_status = False
 last_fpl = 1.0
-curr_lap = {}
-best_lap = {}
+curr_lap = {
+    'lapNum': -1,
+    'lapTime': np.inf,
+    'xVals': [],
+    'velos': [],
+    'throttle': [],
+    'brake': [],
+    'fuelUse': [],
+    'gear': [],
+    'rpm': []
+}
+best_lap = {
+    'lapNum': -1,
+    'lapTime': np.inf,
+    'xVals': [],
+    'velos': [],
+    'throttle': [],
+    'brake': [],
+    'fuelUse': [],
+    'gear': [],
+    'rpm': []
+}
+prev_lap = None
 
 class stream_handlers:
     
     @staticmethod   
     def parse_basic_forces(stream):
         """Parse basic physics data including G-forces and vehicle dynamics"""
+        global curr_lap
         me_idx = int(stream['PlayerCarIdx'] or 1)
+        xVal = float(stream['LapDistPct'] or 0.0)
         
-        dat = {
+        curr_lap['xVals'].append(xVal)
+        curr_lap['velos'].append(float(stream['Speed'] or 0.0) * 2.23694)
+        curr_lap['throttle'].append(float(stream['ThrottleRaw'] or 0.0))
+        curr_lap['brake'].append(float(stream['BrakeRaw'] or 0.0))
+        curr_lap['rpm'].append(int(stream['RPM'] or 0)),
+        curr_lap['gear'].append(int(stream['Gear'] or 0))
+        curr_lap['fuelUse'].append(float(stream['FuelUsePerHour'] or 0.0))
+        
+        return {
             'velo': float(stream['Speed'] or 0.0) * 2.23694,
             'brake': float(stream['BrakeRaw'] or 0.0),
             'clutch': 1 - float(stream['ClutchRaw'] or 0.0),
@@ -45,10 +78,6 @@ class stream_handlers:
             'flag': stream['CarIdxSessionFlags'][me_idx]
         }
         
-        curr_lap[float(stream['LapDistPct'] or 0.0)] = dat
-        
-        return dat
-        
     @staticmethod
     def parse_relative_timing(stream, cars):
         """Parse relative timing and distance data"""
@@ -56,6 +85,7 @@ class stream_handlers:
         me_idx = int(stream['PlayerCarIdx'] or 1)
         me_pos = int(stream['PlayerCarPosition'] or 1)
         me_class_pos = int(stream['PlayerCarClassPosition'] or 1)
+        me_class = stream['PlayerCarClass']
         me_lap_dist = float(stream['LapDistPct'] or 0.0)
         me_lap = int(stream['Lap'] or 1)
         me_pit_status = bool(stream['OnPitRoad'] or False)
@@ -66,7 +96,8 @@ class stream_handlers:
                 'curr_class_position': me_class_pos,
                 'lap_dist': me_lap_dist,
                 'lap': me_lap,
-                'pit_status': me_pit_status
+                'pit_status': me_pit_status,
+                'class': me_class
             }
         
         classColor = ''
@@ -90,7 +121,8 @@ class stream_handlers:
             'lap_dist': me_lap_dist,
             'class_color': classColor,
             'lap': me_lap,
-            'pit_status': me_pit_status
+            'pit_status': me_pit_status,
+            'class': me_class
         }
 
     
@@ -122,7 +154,7 @@ class stream_handlers:
             'lap_last_lap_time': float(stream['LapLastLapTime'] or 0.0),
             'lap_current_lap_time': float(stream['LapCurrentLapTime'] or 0.0),
             'lap_best_lap': int(stream['LapBestLap'] or 1),
-            'live_delta': float(stream['LapDeltaToBestLap'] or 0.0),
+            'live_delta': float(stream['LapDeltaToSessionBestLap'] or 0.0),
             'leader_delta': float(stream['LapDeltaToSessionBestLap'] or 0.0),
             'lap': int(stream['Lap'] or 0),
             'laps_remaining': int(stream['SessionLapsRemainEx'] or 0),
@@ -201,9 +233,9 @@ class stream_handlers:
             'consumables': stream_handlers.parse_consumables(stream),
             'drivetrain': stream_handlers.parse_drivetrain(stream),
             'strat_box': stream_handlers.get_hotbox(stream),
-            'laps': None, #Initialize for init
+            'bestLap': None,
             'stint_lap': stint_l,
-            'lapMarker': False
+            'lapMarker': False,
             
         }
         
@@ -257,11 +289,11 @@ def get_all_info(ir):
     """
     Gets weekend and session info
     """
-    global session_info
-    global ids
+    global session
+    global cars
     
-    #session_info = sip.get_all(ir)
-    #cars = session_info['all_cars']
+    session = sip.get_all(ir)
+    cars = session['all_cars']
 
 def stop_stream():
     """
@@ -284,15 +316,15 @@ def stop_stream():
     global cars
     global last_fpl
     global stint_n
+    global best_lap
+    global curr_lap
+    global prev_lap
     
-    frame = {}
-    prev_frame = {}
     stream_running = False
     ir_instance = None
     stop_requested = False
     stop_times = []
     curr_stop_time = 0.0
-    session = {}
     cars = []
     stint_total_time = 0.0
     total_time = 0.0
@@ -302,6 +334,36 @@ def stop_stream():
     fuel_start = 0.0
     pit_status = False
     last_fpl = 1
+
+    if best_lap is not None and best_lap != {} and frame is not None:
+        fileWriter.write_file(session['track_info']['class'], session['track_info']['track_id'], best_lap)
+
+    best_lap = best_lap = {
+        'lapNum': -1,
+        'lapTime': np.inf,
+        'xVals': [],
+        'velos': [],
+        'throttle': [],
+        'brake': [],
+        'fuelUse': [],
+        'gear': [],
+        'rpm': []
+    }
+    prev_lap = None
+    session = {}
+    frame = {}
+    prev_frame = {}
+    curr_lap = {
+        'lapNum': -1,
+        'lapTime': np.inf,
+        'xVals': [],
+        'velos': [],
+        'throttle': [],
+        'brake': [],
+        'fuelUse': [],
+        'gear': [],
+        'rpm': []
+    }
     
     stream_running = False
     if ir_instance:
@@ -348,6 +410,7 @@ def start_stream(interrupt_act=None):
     global stint_n
     global best_lap
     global curr_lap
+    global prev_lap
     
     stream_running = True
     ir_instance = irsdk.IRSDK()
@@ -363,15 +426,19 @@ def start_stream(interrupt_act=None):
             continue
         
         with lock:
-            if state.ir_connected:
+            if state.ir_connected: 
+
+                updateLapMarker = False
                 if session == {}:
-                    session = get_all_info(ir_instance)
-                if cars == []:
-                    cars = sip.get_all_cars(ir_instance)
-                    #pass
-                    
+                    get_all_info(ir_instance)
+                    best_lap = fileWriter.pull_file(session['track_info']['class'], session['track_info']['track_id'])
+                    if best_lap != {}:
+                        updateLapMarker = True
+
                 prev_frame = frame.copy() if frame else {}
                 frame = loop(ir_instance)
+
+                frame['newBestMarker'] = updateLapMarker
             
             frame['connection'] = connect_status
             
@@ -381,17 +448,34 @@ def start_stream(interrupt_act=None):
                 stint_l += 1
                 last_fpl = frame['strat_box']['avg_fuel_per_lap']
                 cars = sip.get_all_cars(ir_instance)
-                if prev_frame['lap_times']['lap_best_lap'] != frame['lap_times']['lap_best_lap']:
-                    best_lap = curr_lap
+
+                prev_lap = deepcopy(curr_lap)
+                prev_lap['lapTime'] = float(frame['lap_times']['lap_last_lap_time'])
                     
-                curr_lap = {}
+                curr_lap = {
+                        'lapNum': int(frame['lap_times']['lap']),
+                        'lapTime': np.inf,
+                        'xVals': [],
+                        'velos': [],
+                        'throttle': [],
+                        'brake': [],
+                        'fuelUse': [],
+                        'gear': [],
+                        'rpm': []
+                    }
                 frame['lapMarker'] = True
 
             else:
                 frame['strat_box']['avg_fuel_per_lap'] = last_fpl
 
             frame['stint_lap'] = stint_l
-                
+
+            if (prev_lap and prev_lap != {} and best_lap['lapTime'] > prev_lap['lapTime'] and prev_lap['lapTime'] > 0.0):
+                best_lap = prev_lap
+                print(f"New best lap saved, lap={prev_lap['lapNum']}")
+            
+            frame['bestLap'] = best_lap
+
             if (frame['consumables']['pit_status']):
                 if (pit_status):
                     curr_stop_time += 1/60

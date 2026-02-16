@@ -26,7 +26,7 @@ class sessionInfoParsers:
         pos = 1
         
         if stream['DriverInfo'] and stream['DriverInfo']['Drivers']:
-            for driver in stream['Drivers']:
+            for driver in stream['DriverInfo']['Drivers']:
                 if stream['CarIdxClass'][driver['CarIdx']] == me_class:
                     temp = {
                         'CarIdx': driver['CarIdx'],
@@ -103,13 +103,22 @@ class sessionInfoParsers:
 
     @staticmethod
     def get_track_info(stream):
-        pass
+        """
+        Returns track info, can be expanded to increase usage
+        
+        """
+        if stream['WeekendInfo']:
+            return {
+                'track_name': stream['WeekendInfo']['TrackName'],
+                'track_id': stream['WeekendInfo']['TrackID'],
+                'class': stream['PlayerCarClass']
+            }
+        return{}
 
     @staticmethod
     def get_all(stream):
         return {
             'cars_in_class': sessionInfoParsers.get_cars_in_class(stream),
             'all_cars': sessionInfoParsers.get_all_cars(stream),
-            'session_info': sessionInfoParsers.get_session_info(stream),
             'track_info': sessionInfoParsers.get_track_info(stream)
         }
