@@ -74,7 +74,7 @@ class UpdateManager {
         this.cacheElements();
         this.setupCanvases();
         
-        console.log('✓ PracticeQualiManager initialized');
+        console.log('PracticeQualiManager initialized');
     }
 
     cacheElements() {
@@ -511,7 +511,7 @@ class UpdateManager {
      * @param {Object} bestLapData - Object containing arrays of best lap data
      */
     updateBestLap(bestLapData) {
-        console.log('📊 Updating best lap ghost data');
+        console.log('Updating best lap ghost data');
         
         // Store best lap data
         this.bestLap.xValues = bestLapData.xVals || [];
@@ -523,7 +523,7 @@ class UpdateManager {
         this.bestLap.brake = bestLapData.brake || [];
         this.bestLap.fuelUse = bestLapData.fuelUse || [];
         
-        console.log(`✓ Best lap loaded: ${this.bestLap.xValues.length} points`);
+        console.log(`Best lap loaded: ${this.bestLap.xValues.length} points`);
         
         // Force immediate redraw to show ghost
         this.drawSpeedChart();

@@ -186,12 +186,12 @@ class UpdateManager {
     }
 
     updatePositionMarker(id, name, position, classPosition, gap, classColor) {
-        let marker = document.getElementById(id);
+        let marker = document.getElementById(position);
 
         if (!marker){
             marker = document.createElement("div");
             marker.classList.add("position-row");
-            marker.id = id;
+            marker.id = position;
             marker.style.backgroundColor = classColor;
             marker.style.color = '#ffffff';
 
