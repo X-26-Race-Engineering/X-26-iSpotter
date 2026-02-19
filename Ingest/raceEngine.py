@@ -205,13 +205,10 @@ class stream_handlers:
             avg_fpl = 1
             
         lf = float(stream['FuelLevel'] or 0.0) / last_fpl
-
-        stint_avg_pace = stint_total_time / max(stint_l ,1)
-        race_avg_pace = total_time / int(stream['Lap'] or 1)
         
         return {
-            'stint_avg_pace': stint_avg_pace,
-            'race_avg_pace': race_avg_pace,
+            'stint_avg_pace': int(stream['LapLastNLapTime'][stint_l - 1] or 0),
+            'race_avg_pace': int(stream['LapLastNLapTime'][int(stream['Lap'] or 1) - 1] or 0),
             'laps_completed': int(stream['LapCompleted'] or 1),
             'avg_laps_per_stint': avg_lps,
             'stints_completed': stint_n,
