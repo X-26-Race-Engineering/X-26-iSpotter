@@ -193,13 +193,14 @@ class stream_handlers:
         global stint_n
         global stint_total_time
         global total_time
+        global curr_stop_time
         
-        if stint_n > 1:
+        if stint_n >= 1:
             avg_lps = last_pit_lap / stint_n
         else:
             avg_lps = 0
             
-        if stream['LapCompleted'] > 0:
+        if stream['LapCompleted'] >= 1:
             avg_fpl = (fuel_start - float(stream['FuelLevel'] or 0.0)) / max(stint_l + 1, 1)
         else:
             avg_fpl = 1
@@ -207,8 +208,8 @@ class stream_handlers:
         lf = float(stream['FuelLevel'] or 0.0) / last_fpl
         
         return {
-            'stint_avg_pace': int(stream['LapLastNLapTime'][stint_l - 1] or 0),
-            'race_avg_pace': int(stream['LapLastNLapTime'][int(stream['Lap'] or 1) - 1] or 0),
+            'stint_avg_pace': int(stream['LapLastNLapTime'][max(stint_l - 1, 1)] or 0),
+            'race_avg_pace': int(stream['LapLastNLapTime'][max(int(stream['Lap'] or 1) - 1, 1)] or 0),
             'laps_completed': int(stream['LapCompleted'] or 1),
             'avg_laps_per_stint': avg_lps,
             'stints_completed': stint_n,
