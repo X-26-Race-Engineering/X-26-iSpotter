@@ -99,7 +99,7 @@ a {
 
 .position-header {
     display: grid;
-    grid-template-columns: 1fr 1fr 2fr 1.5fr;
+    grid-template-columns: 0.75fr 0.75fr 2.5fr 1.5fr;
     padding: 5px 6px;
     font-size: var(--font-header);
     font-weight: bold;
@@ -117,7 +117,7 @@ a {
 
 .position-row {
     display: grid;
-    grid-template-columns: 1fr 1fr 2fr 1.5fr;
+    grid-template-columns: 0.75fr 0.75fr 2.5fr 1.5fr;
     padding: 4px 6px;
     font-size: var(--font-table);
     border-bottom: 1px solid #111;
@@ -559,7 +559,7 @@ a {
 /* ==================== RELATIVE TABLE ==================== */
 .relative-header {
     display: grid;
-    grid-template-columns: 1fr 1fr 2fr 1.5fr;
+    grid-template-columns: 0.75fr 2.5fr 0.75fr 1.5fr;
     padding: 5px 6px;
     font-size: var(--font-header);
     font-weight: bold;
@@ -575,6 +575,16 @@ a {
     overflow-y: auto;
     min-height: 0;
     width: 100%;
+}
+
+.relative-row {
+    display: grid;
+    grid-template-columns: 0.75fr 2.5fr 0.75fr 1.5fr;
+    padding: 4px 6px;
+    font-size: var(--font-table);
+    border-bottom: 1px solid #111;
+    text-align: center;
+    height: clamp(24px, 2.7vh, 32px);
 }
 
 /* ==================== NAV BUTTONS ==================== */

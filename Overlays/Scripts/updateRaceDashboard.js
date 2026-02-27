@@ -49,6 +49,7 @@ class UpdateManager {
     cacheElements() {
         this.el = {
             positionTable: document.getElementById('position-table'),
+            inClassTable: document.getElementById('in-class-table'),
             currentPos: document.getElementById('current-pos'),
             currentLap: document.getElementById('current-lap'),
             stintLap: document.getElementById('stint-lap'),
@@ -185,13 +186,26 @@ class UpdateManager {
         };
     }
 
-    updatePositionMarker(id, name, position, classPosition, gap, classColor) {
-        let marker = document.getElementById(position);
+    updatePositionMarker(lap, name, position, classPosition, gap, classColor, refLap, pitStatus) {
+        let marker = document.getElementById("overall_" + position.toString());
+
+        let color = '#ffffff';
+            if (parseInt(lap, 10) > parseInt(refLap, 10)) {
+                color = '#ff0000';
+            }
+            if (parseInt(lap, 10) < parseInt(refLap, 10)) {
+                color = '#00f7ff';
+            }
+        
+            let opacity = 1;
+            if (pitStatus) {
+                opacity = 0.75;
+            }
 
         if (!marker){
             marker = document.createElement("div");
             marker.classList.add("position-row");
-            marker.id = position;
+            marker.id = "overall_" + position.toString();
             marker.style.backgroundColor = classColor;
             marker.style.color = '#ffffff';
 
@@ -205,6 +219,49 @@ class UpdateManager {
             Object.assign(document.createElement("div"), { textContent: this.formatTime(gap) })
         );
 
+        marker.style.color = color;
+        marker.style.opacity = opacity;
+
+    }
+
+    updateInClassMarker(lap, name, position, lastPitLap, classColor, refLap, pitStatus, lastLapTime) {
+        let marker = document.getElementById("inClass_" + position.toString());
+
+        let color = '#ffffff';
+            if (parseInt(lap, 10) > parseInt(refLap, 10)) {
+                color = '#ff0000';
+            }
+            if (parseInt(lap, 10) < parseInt(refLap, 10)) {
+                color = '#00f7ff';
+            }
+        
+        let opacity = 1;
+            if (pitStatus) {
+                opacity = 0.75;
+            }
+
+        let laps_since_pit = parseInt(lap, 10) - parseInt(lastPitLap, 10)
+
+        if (!marker){
+            marker = document.createElement("div");
+            marker.classList.add("relative-row");
+            marker.id = "inClass_" + position.toString();
+            marker.style.backgroundColor = classColor;
+            marker.style.color = '#ffffff';
+
+            this.el.inClassTable.appendChild(marker);
+        }
+
+        marker.replaceChildren(
+            Object.assign(document.createElement("div"), { textContent: position }),
+            Object.assign(document.createElement("div"), { textContent: name }),
+            Object.assign(document.createElement("div"), { textContent: laps_since_pit }),
+            Object.assign(document.createElement("div"), { textContent: this.formatTime(lastLapTime) })
+        );
+
+        marker.style.color = color;
+        marker.style.opacity = opacity;
+
     }
     /**
      * Creates or updates a single driver marker on the circle.
@@ -216,10 +273,10 @@ class UpdateManager {
         let marker = document.getElementById(id);
 
         let color = '#ffffff';
-            if (lap > refLap) {
+            if (parseInt(lap) > parseInt(refLap)) {
                 color = '#ff0000';
             }
-            if (lap < refLap) {
+            if (parseInt(lap) < parseInt(refLap)) {
                 color = '#00f7ff';
             }
         
@@ -318,6 +375,7 @@ class UpdateManager {
         const dotPos = this.lapDistToXY(lapDistPct, 180);
         marker.querySelector('.marker-dot').setAttribute('cx', dotPos.x);
         marker.querySelector('.marker-dot').setAttribute('cy', dotPos.y);
+        marker.querySelector('.marker-dot').setAttribute('fill', color);
 
         const badgePos = this.lapDistToXY(lapDistPct, 200);
         marker.querySelector('.marker-badge').setAttribute('cx', badgePos.x);
@@ -648,26 +706,49 @@ class UpdateManager {
             // Circle of Doom — other drivers
             if (data.relative_timing?.cars_by_pos) {
                 data.relative_timing.cars_by_pos.forEach((driver) => {
-                    this.updateDriverMarker(
-                        'driver_' + driver.CarIdx,
-                        driver.Lap_Dist,
-                        driver.Driver_Name,
-                        driver.Lap_Started,
-                        driver.Position,
-                        driver.Class_Pos,
-                        data.relative_timing.lap,
-                        driver.Class_Color,
-                        driver.Pit_Status
-                    );
+                    if (driver.name != "Pace Car"){
 
-                    this.updatePositionMarker(
-                        'driver_' + driver.CarIdx + '_pos',
-                        driver.Driver_Name,
-                        driver.Position,
-                        driver.Class_Pos,
-                        driver.Gap_To_Leader,
-                        driver.Class_Color
-                    );
+                        this.updateDriverMarker(
+                            'driver_' + driver.CarIdx,
+                            driver.Lap_Dist,
+                            driver.Driver_Name,
+                            driver.Lap_Started,
+                            driver.Position,
+                            driver.Class_Pos,
+                            data.relative_timing.lap,
+                            driver.Class_Color,
+                            driver.Pit_Status
+                        );
+
+                        this.updatePositionMarker(
+                            driver.Lap_Started,
+                            driver.Driver_Name,
+                            driver.Position,
+                            driver.Class_Pos,
+                            driver.Gap_To_Leader,
+                            driver.Class_Color,
+                            data.relative_timing.lap,
+                            driver.Pit_Status
+                        );
+                    }
+                });
+            }
+
+            if (data.relative_timing?.cars_in_class) {
+                data.relative_timing.cars_in_class.forEach((driver) => {
+                    if (driver.name != "Pace Car"){
+
+                        this.updateInClassMarker(
+                            driver.Lap_Started,
+                            driver.Driver_Name,
+                            driver.Class_Pos,
+                            driver.Last_Pit_Lap,
+                            driver.Class_Color,
+                            data.relative_timing.lap,
+                            driver.Pit_Status,
+                            driver.Last_Lap_Time
+                        );
+                    }   
                 });
             }
 

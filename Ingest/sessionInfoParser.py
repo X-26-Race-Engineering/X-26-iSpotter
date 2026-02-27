@@ -80,7 +80,9 @@ class sessionInfoParsers:
                     'Gap_To_Leader': 0,
                     'Position': pos,
                     'Class_Pos': pos,
-                    'Lap_Dist': 0
+                    'Lap_Dist': 0,
+                    'Last_Lap_Time': None,
+                    'Last_Pit_Lap': 0
                     }
                 car_list.append(temp)
                 pos += 1
