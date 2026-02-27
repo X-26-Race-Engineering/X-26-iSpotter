@@ -20,8 +20,6 @@ class fileWriter:
         os.chdir('../')
 
     def pull_file(car, track):
-
-        ret = {}
         
         filename = f"{str(car)}_{str(track)}.json"
 
@@ -32,13 +30,13 @@ class fileWriter:
                 with open(filename, 'r') as f:
                     ret = json.load(f)
                     f.close()
-
-            os.chdir('../')
-
-            return ret
+                    
+                os.chdir('../')
+                return ret
         
-        else:
-            return {
+            else:
+                os.chdir('../')
+                return {
                         'lapNum': -1,
                         'lapTime': np.inf,
                         'xVals': [],
