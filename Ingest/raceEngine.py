@@ -340,7 +340,7 @@ def stop_stream():
     pit_status = False
     last_fpl = 1
 
-    if best_lap is not None and best_lap != {} and frame is not None:
+    if best_lap is not None and best_lap != {} and frame is not None and session != {}:
         fileWriter.write_file(session['track_info']['class'], session['track_info']['track_id'], best_lap)
 
     best_lap = {

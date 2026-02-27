@@ -1,11 +1,24 @@
 // Close window (Electron)
 const closeBtn = document.getElementById('close-window-btn');
 if (closeBtn) {
-    closeBtn.addEventListener('click', () => {
-        if (typeof window.closeWindow === 'function') {
-            window.closeWindow();
-        } else {
-            console.error('window.closeWindow not available - preload.js may not have loaded');
+    closeBtn.addEventListener('click', async () => {
+        try {
+            const response = await fetch('/api/stream/stop', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' }
+            });
+            const data = await response.json();
+            console.log('Stop response:', data);
+
+            if ((data.status === 'success' || data.status === 'not_running') && (typeof window.closeWindow === 'function')) {
+                updateStreamStatus(false);
+                updateIRacingStatus(false);
+                window.closeWindow();
+            } else {
+                console.error('window.closeWindow not available - preload.js may not have loaded');
+            }
+        } catch (error) {
+        console.error('Error stopping stream:', error);
         }
     });
 }

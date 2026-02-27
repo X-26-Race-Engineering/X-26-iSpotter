@@ -115,7 +115,7 @@ class sessionInfoParsers:
                 'track_id': stream['WeekendInfo']['TrackID'],
                 'class': stream['PlayerCarClass']
             }
-        return{}
+        return {}
 
     @staticmethod
     def get_all(stream):
